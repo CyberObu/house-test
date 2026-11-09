@@ -1,0 +1,58 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}Report User - NyumbaHub{% endblock %}
+{% block breadcrumb %}<i class="fas fa-chevron-right text-xs mx-1"></i><span class="font-semibold text-red-500">Report</span>{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-lg mx-auto">
+
+  <!-- Confidentiality notice -->
+  <div class="flex items-start gap-3 bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-6">
+    <i class="fas fa-shield-alt text-blue-500 mt-0.5"></i>
+    <div>
+      <p class="text-sm font-semibold text-blue-700">This report is confidential</p>
+      <p class="text-xs text-blue-500 mt-0.5">Only the NyumbaHub admin team will see this. The person you are reporting will never know you submitted it.</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+    <!-- Who is being reported -->
+    <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl mb-6">
+      <img src="{{ reported.get_avatar_url }}" class="w-12 h-12 rounded-xl object-cover border border-gray-100 flex-shrink-0">
+      <div>
+        <p class="text-xs text-gray-400 uppercase font-semibold tracking-wide">Reporting</p>
+        <p class="font-bold text-gray-800">{{ reported.get_full_name|default:reported.email }}</p>
+        <p class="text-xs text-gray-400 capitalize">{{ reported.role }}</p>
+      </div>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+
+      <div class="mb-5">
+        <label class="form-label">Reason for Report <span class="text-red-500">*</span></label>
+        <select name="reason" class="form-input" required>
+          <option value="">— Select a reason —</option>
+          {% for value, label in reason_choices %}
+          <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="mb-6">
+        <label class="form-label">Description <span class="text-red-500">*</span></label>
+        <textarea name="description" rows="5" class="form-input" required
+                  placeholder="Please describe what happened in detail. Include dates, property names, or any relevant information that will help the admin team investigate…"></textarea>
+        <p class="text-xs text-gray-400 mt-1">Be as specific as possible. Vague reports are harder to act on.</p>
+      </div>
+
+      <div class="flex gap-3">
+        <button type="submit" class="btn-primary flex-1" style="background:#dc2626!important">
+          <i class="fas fa-flag mr-2"></i> Submit Report
+        </button>
+        <a href="{{ next }}" class="btn-outline flex-1 text-center">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

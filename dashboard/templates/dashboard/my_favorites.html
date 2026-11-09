@@ -1,0 +1,25 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}Saved Properties - NyumbaHub{% endblock %}
+{% block breadcrumb %}<i class="fas fa-chevron-right text-xs mx-1"></i><span class="text-primary font-semibold">Saved Properties</span>{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-primary">Saved Properties</h1>
+  <p class="text-gray-500 mt-1">Properties you've bookmarked</p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  {% for fav in favorites %}
+  {% with prop=fav.property %}
+  {% include 'properties/_card.html' %}
+  {% endwith %}
+  {% empty %}
+  <div class="col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-16 text-center">
+    <i class="fas fa-heart text-5xl text-gray-200 mb-4 block"></i>
+    <h3 class="text-lg font-semibold text-gray-400">No saved properties</h3>
+    <p class="text-gray-400 text-sm mt-1">Browse properties and click the heart icon to save them here.</p>
+    <a href="{% url 'properties:list' %}" class="inline-block mt-4 btn-primary text-sm">Browse Properties</a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

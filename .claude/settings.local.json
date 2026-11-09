@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir /s /b \"C:\\\\Users\\\\allyb\\\\Desktop\\\\House rental Systm\")",
+      "Bash(venv\\\\Scripts\\\\python.exe manage.py check)",
+      "PowerShell(Out-Null *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:8000/)",
+      "Bash(curl *)",
+      "Bash(python manage.py check --deploy)",
+      "Bash(python manage.py check)",
+      "Bash(Get-Content \"C:\\\\Users\\\\allyb\\\\Pictures\\\\House rental Systm\\\\dashboard\\\\views.py\")",
+      "Bash(Measure-Object -Line)",
+      "PowerShell(cd \"C:\\\\Users\\\\allyb\\\\Pictures\\\\House rental Systm\"; $env:DJANGO_SETTINGS_MODULE=\"realestate.settings\"; python -c \"import django; django.setup\\(\\); from dashboard import views; print\\('OK'\\)\" 2>&1)",
+      "Bash(venv\\\\Scripts\\\\python.exe manage.py migrate properties 0005_nearbyplace)",
+      "Bash(.\\\\venv\\\\Scripts\\\\python.exe manage.py migrate)",
+      "Bash(cmd *)",
+      "Bash(python manage.py makemigrations accounts)",
+      "Bash(python manage.py migrate)"
+    ]
+  }
+}

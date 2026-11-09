@@ -1,0 +1,179 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}Chat – NyumbaHub{% endblock %}
+{% block breadcrumb %}
+  <span class="text-gray-300 mx-1">/</span>
+  <a href="{% url 'messaging:inbox' %}" class="hover:text-primary">Messages</a>
+  <span class="text-gray-300 mx-1">/</span>
+  {{ other_user.get_full_name|default:other_user.username|default:"Conversation" }}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  #chat-box { height: calc(100vh - 340px); min-height: 320px; }
+  .bubble { max-width: 72%; }
+  .bubble-mine { background: #1D3557; color: #fff; border-radius: 18px 18px 4px 18px; }
+  .bubble-other { background: #f3f4f6; color: #374151; border-radius: 18px 18px 18px 4px; }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-3xl mx-auto flex flex-col" style="height: calc(100vh - 160px);">
+
+  <!-- Chat Header -->
+  <div class="bg-white rounded-t-2xl border border-gray-100 border-b-0 px-5 py-4 flex items-center gap-4 shadow-sm">
+    <a href="{% url 'messaging:inbox' %}" class="text-gray-400 hover:text-primary transition-colors mr-1">
+      <i class="fas fa-arrow-left"></i>
+    </a>
+    {% if other_user %}
+    <img src="{{ other_user.get_avatar_url }}" class="w-10 h-10 rounded-xl object-cover border border-gray-200" alt="">
+    <div>
+      <div class="font-semibold text-sm text-gray-800">{{ other_user.get_full_name|default:other_user.username }}</div>
+      <div class="text-xs text-gray-400 capitalize">{{ other_user.role }}</div>
+    </div>
+    {% endif %}
+    {% if conversation.property %}
+    <a href="{{ conversation.property.get_absolute_url }}" class="ml-auto flex items-center gap-2 bg-accent/10 text-accent text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-accent/20 transition-colors">
+      <i class="fas fa-home"></i>
+      <span class="hidden sm:inline truncate max-w-[140px]">{{ conversation.property.title }}</span>
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Messages Area -->
+  <div id="chat-box" class="bg-white border-x border-gray-100 overflow-y-auto px-5 py-4 flex flex-col gap-3">
+    {% for msg in messages %}
+    <div class="flex {% if msg.sender == request.user %}justify-end{% else %}justify-start{% endif %}" id="msg-{{ msg.pk }}">
+      <div class="bubble px-4 py-2.5 text-sm leading-relaxed {% if msg.sender == request.user %}bubble-mine{% else %}bubble-other{% endif %}">
+        <p>{{ msg.content }}</p>
+        <p class="text-xs mt-1 {% if msg.sender == request.user %}text-white/50{% else %}text-gray-400{% endif %} text-right">{{ msg.created_at|date:"H:i" }}</p>
+      </div>
+    </div>
+    {% empty %}
+    <div class="flex-1 flex flex-col items-center justify-center text-center py-10" id="empty-state">
+      <i class="fas fa-comments text-4xl text-gray-200 mb-3"></i>
+      <p class="text-gray-400 text-sm">Say hello to start the conversation!</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Input Area -->
+  <div class="bg-white rounded-b-2xl border border-gray-100 border-t px-4 py-3 shadow-sm">
+    <form id="msg-form" class="flex items-end gap-3">
+      {% csrf_token %}
+      <textarea
+        id="msg-input"
+        name="content"
+        rows="1"
+        placeholder="Type a message…"
+        class="flex-1 border-2 border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 resize-none leading-relaxed"
+        style="max-height: 120px; overflow-y: auto;"
+      ></textarea>
+      <button type="submit"
+        class="w-11 h-11 rounded-xl bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-colors flex-shrink-0">
+        <i class="fas fa-paper-plane text-sm"></i>
+      </button>
+    </form>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  const box = document.getElementById('chat-box');
+  const form = document.getElementById('msg-form');
+  const input = document.getElementById('msg-input');
+  const sendUrl = "{% url 'messaging:send_message' conversation.pk %}";
+  const pollUrl = "{% url 'messaging:poll_messages' conversation.pk %}";
+  const myId = {{ request.user.pk }};
+
+  // Track the last message ID for polling
+  const allMsgs = box.querySelectorAll('[id^="msg-"]');
+  let lastId = allMsgs.length > 0
+    ? parseInt(allMsgs[allMsgs.length - 1].id.replace('msg-', ''))
+    : 0;
+
+  // Scroll to bottom
+  function scrollBottom() {
+    box.scrollTop = box.scrollHeight;
+  }
+  scrollBottom();
+
+  // Auto-grow textarea
+  input.addEventListener('input', function () {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+  });
+
+  // Send on Enter (Shift+Enter = newline)
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      form.dispatchEvent(new Event('submit'));
+    }
+  });
+
+  function appendBubble(msg) {
+    const emptyState = document.getElementById('empty-state');
+    if (emptyState) emptyState.remove();
+
+    const isMine = msg.is_mine || msg.sender_id === myId;
+    const div = document.createElement('div');
+    div.id = 'msg-' + msg.id;
+    div.className = 'flex ' + (isMine ? 'justify-end' : 'justify-start');
+    div.innerHTML = `
+      <div class="bubble px-4 py-2.5 text-sm leading-relaxed ${isMine ? 'bubble-mine' : 'bubble-other'}">
+        <p>${escapeHtml(msg.content)}</p>
+        <p class="text-xs mt-1 ${isMine ? 'text-white/50' : 'text-gray-400'} text-right">${msg.created_at}</p>
+      </div>`;
+    box.appendChild(div);
+    lastId = msg.id;
+    scrollBottom();
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Submit handler
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const content = input.value.trim();
+    if (!content) return;
+
+    const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+    fetch(sendUrl, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'content=' + encodeURIComponent(content),
+    })
+    .then(r => r.json())
+    .then(msg => {
+      appendBubble(msg);
+      input.value = '';
+      input.style.height = 'auto';
+    });
+  });
+
+  // Polling for new messages every 3 seconds
+  function poll() {
+    fetch(pollUrl + '?after=' + lastId, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => {
+      data.messages.forEach(msg => {
+        if (!document.getElementById('msg-' + msg.id)) {
+          appendBubble(msg);
+        }
+      });
+    })
+    .catch(() => {});
+  }
+  setInterval(poll, 3000);
+})();
+</script>
+{% endblock %}

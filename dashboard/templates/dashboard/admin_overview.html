@@ -1,0 +1,93 @@
+{% extends 'dashboard/base_platform.html' %}
+{% block title %}Admin Overview - NyumbaHub{% endblock %}
+{% block breadcrumb %}Overview{% endblock %}
+
+{% block platform_content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold" style="color:#1D3557">Admin Panel</h1>
+  <p class="text-gray-500 mt-1">Review listings, verify agents, and manage the platform.</p>
+</div>
+
+<!-- Stats -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center">
+    <div class="text-3xl font-bold mb-1" style="color:#1D3557">{{ pending_listings }}</div>
+    <div class="text-xs text-gray-500 font-semibold uppercase tracking-wide">Pending Listings</div>
+  </div>
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center">
+    <div class="text-3xl font-bold mb-1 text-orange-500">{{ pending_verifs }}</div>
+    <div class="text-xs text-gray-500 font-semibold uppercase tracking-wide">Pending Verifs</div>
+  </div>
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center">
+    <div class="text-3xl font-bold mb-1 text-green-500">{{ total_agents }}</div>
+    <div class="text-xs text-gray-500 font-semibold uppercase tracking-wide">Total Agents</div>
+  </div>
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center">
+    <div class="text-3xl font-bold mb-1 text-blue-500">{{ total_listings }}</div>
+    <div class="text-xs text-gray-500 font-semibold uppercase tracking-wide">Total Listings</div>
+  </div>
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-center">
+    <div class="text-3xl font-bold mb-1 text-purple-500">{{ total_buyers }}</div>
+    <div class="text-xs text-gray-500 font-semibold uppercase tracking-wide">Total Buyers</div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <!-- Recent Pending Listings -->
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-bold text-lg" style="color:#1D3557">Pending Listings</h2>
+      <a href="{% url 'platform:listings' %}" class="text-xs font-semibold hover:underline" style="color:#1D3557">View all &rarr;</a>
+    </div>
+    {% if recent_listings %}
+    <div class="space-y-3">
+      {% for prop in recent_listings %}
+      <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
+        {% with img=prop.images.first %}
+        {% if img %}<img src="{{ img.image.url }}" class="w-12 h-10 object-cover rounded-lg flex-shrink-0">
+        {% else %}<div class="w-12 h-10 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0"><i class="fas fa-home text-gray-400 text-sm"></i></div>{% endif %}
+        {% endwith %}
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-sm text-gray-800 truncate">{{ prop.title }}</div>
+          <div class="text-xs text-gray-400">by {{ prop.owner.get_full_name }} &middot; {{ prop.created_at|date:"M j" }}</div>
+        </div>
+        <div class="flex gap-2 flex-shrink-0">
+          <form method="post" action="{% url 'platform:approve_listing' prop.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="px-3 py-1 bg-green-500 text-white text-xs rounded-lg font-semibold hover:bg-green-600 transition">Approve</button>
+          </form>
+          <a href="{% url 'platform:listings' %}" class="px-3 py-1 bg-red-50 text-red-500 text-xs rounded-lg font-semibold hover:bg-red-100 transition">Review</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-gray-400 text-sm text-center py-6">No pending listings.</p>
+    {% endif %}
+  </div>
+
+  <!-- Recent Pending Verifications -->
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-bold text-lg" style="color:#1D3557">Agent Verifications</h2>
+      <a href="{% url 'platform:verifications' %}" class="text-xs font-semibold hover:underline" style="color:#1D3557">View all &rarr;</a>
+    </div>
+    {% if recent_verifs %}
+    <div class="space-y-3">
+      {% for verif in recent_verifs %}
+      <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
+        <img src="{{ verif.user.get_avatar_url }}" class="w-10 h-10 rounded-xl object-cover flex-shrink-0">
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-sm text-gray-800 truncate">{{ verif.full_name }}</div>
+          <div class="text-xs text-gray-400">{{ verif.user.email }} &middot; {{ verif.submitted_at|date:"M j" }}</div>
+        </div>
+        <a href="{% url 'platform:verifications' %}" class="px-3 py-1 text-xs rounded-lg font-semibold text-white transition" style="background-color:#1D3557">Review</a>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-gray-400 text-sm text-center py-6">No pending verifications.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock platform_content %}

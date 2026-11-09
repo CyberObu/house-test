@@ -1,0 +1,88 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}Messages – NyumbaHub{% endblock %}
+{% block breadcrumb %}<span class="text-gray-300 mx-1">/</span> Messages{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-3xl mx-auto">
+
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <!-- Header -->
+    <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+      <h2 class="text-xl font-bold text-primary flex items-center gap-2">
+        <i class="fas fa-comments text-accent"></i> Messages
+      </h2>
+      {% if messages_unread_count %}
+      <span class="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full">
+        {{ messages_unread_count }} unread
+      </span>
+      {% endif %}
+    </div>
+
+    {% if conversations %}
+    <ul class="divide-y divide-gray-50">
+      {% for item in conversations %}
+      <li>
+        <a href="{% url 'messaging:conversation_detail' item.convo.pk %}"
+           class="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors group">
+
+          <!-- Avatar -->
+          <div class="flex-shrink-0 relative">
+            {% if item.other %}
+            <img src="{{ item.other.get_avatar_url }}" class="w-12 h-12 rounded-xl object-cover border border-gray-200" alt="">
+            {% else %}
+            <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+              <i class="fas fa-user text-primary/50"></i>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Content -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between mb-0.5">
+              <span class="font-semibold text-gray-800 text-sm group-hover:text-primary transition-colors">
+                {% if item.other %}{{ item.other.get_full_name|default:item.other.username }}{% else %}Deleted User{% endif %}
+              </span>
+              {% if item.last_message %}
+              <span class="text-xs text-gray-400">{{ item.last_message.created_at|date:"M d" }}</span>
+              {% endif %}
+            </div>
+            {% if item.convo.property %}
+            <div class="text-xs text-accent font-semibold mb-0.5 truncate">
+              <i class="fas fa-home mr-1"></i>{{ item.convo.property.title }}
+            </div>
+            {% endif %}
+            <div class="text-sm text-gray-500 truncate">
+              {% if item.last_message %}
+                {% if item.last_message.sender == request.user %}<span class="text-gray-400">You: </span>{% endif %}
+                {{ item.last_message.content }}
+              {% else %}
+                <span class="italic text-gray-300">No messages yet</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Unread badge -->
+          {% if item.unread > 0 %}
+          <span class="flex-shrink-0 w-5 h-5 bg-blue-500 text-white text-xs font-bold rounded-full flex items-center justify-center">{{ item.unread }}</span>
+          {% endif %}
+
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="text-center py-16">
+      <div class="w-20 h-20 bg-primary/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-comments text-4xl text-primary/20"></i>
+      </div>
+      <p class="text-gray-400 font-medium mb-1">No conversations yet</p>
+      <p class="text-gray-300 text-sm mb-5">Start a chat from any property or agent profile.</p>
+      <a href="{% url 'properties:list' %}" class="inline-flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors">
+        <i class="fas fa-search"></i> Browse Properties
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

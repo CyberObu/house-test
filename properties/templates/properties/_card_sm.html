@@ -1,0 +1,30 @@
+{% load humanize %}
+<div class="group bg-white rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-100 flex gap-0">
+  <div class="relative w-28 flex-shrink-0 overflow-hidden">
+    {% with prop.get_main_image as img %}
+    {% if img %}
+    <img src="{{ img.image.url }}" alt="{{ prop.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+    {% else %}
+    <div class="w-full h-full bg-primary/10 flex items-center justify-center">
+      <i class="fas fa-home text-primary/30 text-2xl"></i>
+    </div>
+    {% endif %}
+    {% endwith %}
+    <span class="{{ prop.status_badge_color }} text-white text-xs font-bold px-2 py-0.5 rounded absolute top-2 left-2">{{ prop.get_status_display }}</span>
+  </div>
+  <div class="p-3 flex flex-col justify-between flex-1 min-w-0">
+    <div>
+      <h4 class="font-semibold text-primary text-sm line-clamp-1 group-hover:text-accent transition-colors">
+        <a href="{{ prop.get_absolute_url }}">{{ prop.title }}</a>
+      </h4>
+      <p class="text-xs text-gray-400 mt-0.5"><i class="fas fa-map-marker-alt text-accent mr-1"></i>{{ prop.city }}</p>
+    </div>
+    <div class="flex items-center justify-between mt-2">
+      <span class="text-accent font-bold text-sm">TZS {{ prop.price|intcomma }}</span>
+      <div class="flex gap-2 text-xs text-gray-400">
+        {% if prop.bedrooms %}<span><i class="fas fa-bed"></i> {{ prop.bedrooms }}</span>{% endif %}
+        {% if prop.bathrooms %}<span><i class="fas fa-bath"></i> {{ prop.bathrooms }}</span>{% endif %}
+      </div>
+    </div>
+  </div>
+</div>

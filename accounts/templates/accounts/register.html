@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% block title %}Create Account - NyumbaHub{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex">
+
+  <!-- Left Panel -->
+  <div class="hidden lg:flex lg:w-5/12 xl:w-5/12 bg-primary flex-col justify-between relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-primary-900 via-primary to-primary/80"></div>
+    <div class="absolute inset-0 opacity-10"
+         style="background-image:url('https://images.unsplash.com/photo-1582407947304-fd86f28f7151?w=900&auto=format&fit=crop'); background-size:cover; background-position:center;">
+    </div>
+    <div class="relative z-10 p-10">
+      <a href="/" class="flex items-center gap-2">
+        <div class="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
+          <i class="fas fa-home text-white text-lg"></i>
+        </div>
+        <span class="text-2xl font-bold text-white">Nyumba<span class="text-accent">Hub</span></span>
+      </a>
+    </div>
+    <div class="relative z-10 px-10 pb-10">
+      <h2 class="text-3xl font-bold text-white leading-tight mb-4">Join Tanzania's #1<br>Real Estate Platform</h2>
+      <div class="space-y-4">
+        <div class="flex items-center gap-3 text-gray-200">
+          <div class="w-9 h-9 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-check text-accent text-sm"></i>
+          </div>
+          <span class="text-sm">Search thousands of properties across Tanzania</span>
+        </div>
+        <div class="flex items-center gap-3 text-gray-200">
+          <div class="w-9 h-9 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-check text-accent text-sm"></i>
+          </div>
+          <span class="text-sm">Save your favourites and set price alerts</span>
+        </div>
+        <div class="flex items-center gap-3 text-gray-200">
+          <div class="w-9 h-9 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-check text-accent text-sm"></i>
+          </div>
+          <span class="text-sm">List properties and connect with buyers directly</span>
+        </div>
+        <div class="flex items-center gap-3 text-gray-200">
+          <div class="w-9 h-9 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-check text-accent text-sm"></i>
+          </div>
+          <span class="text-sm">Pay securely with M-Pesa, Tigo Pesa & more</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="flex-1 flex items-start justify-center bg-gray-50 px-6 py-10 overflow-y-auto">
+    <div class="w-full max-w-lg">
+
+      <div class="mb-7">
+        <a href="/" class="flex items-center gap-2 lg:hidden mb-7">
+          <div class="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
+            <i class="fas fa-home text-white"></i>
+          </div>
+          <span class="text-xl font-bold text-primary">Nyumba<span class="text-accent">Hub</span></span>
+        </a>
+        <h1 class="text-3xl font-bold text-gray-900">Create your account</h1>
+        <p class="text-gray-500 mt-1.5">Free to join. No credit card required.</p>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+
+        {% if form.errors %}
+        <div class="bg-red-50 border-l-4 border-red-500 rounded-xl p-4 mb-6 flex items-start gap-3">
+          <i class="fas fa-exclamation-circle text-red-500 mt-0.5 flex-shrink-0"></i>
+          <div class="text-sm text-red-700">
+            {% for field, errors in form.errors.items %}{% for e in errors %}<div>{{ e }}</div>{% endfor %}{% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <form method="post" class="space-y-5">
+          {% csrf_token %}
+
+          <!-- Name -->
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="form-label">First Name</label>
+              <input type="text" name="first_name" class="form-input" placeholder="John" autocomplete="given-name" required>
+            </div>
+            <div>
+              <label class="form-label">Last Name</label>
+              <input type="text" name="last_name" class="form-input" placeholder="Doe" autocomplete="family-name" required>
+            </div>
+          </div>
+
+          <!-- Username -->
+          <div>
+            <label class="form-label">Username</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <i class="fas fa-at text-gray-400"></i>
+              </div>
+              <input type="text" name="username" class="form-input pl-11"
+                     placeholder="johndoe" autocomplete="username" required>
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label class="form-label">Email Address</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <i class="fas fa-envelope text-gray-400"></i>
+              </div>
+              <input type="email" name="email" class="form-input pl-11"
+                     placeholder="john@example.com" autocomplete="email" required>
+            </div>
+          </div>
+
+          <!-- Role -->
+          <div>
+            <label class="form-label">I am a...</label>
+            <div class="grid grid-cols-2 gap-3 mt-1">
+              <div id="card-buyer"
+                   class="flex flex-col items-center gap-1 p-5 border-2 rounded-2xl cursor-pointer text-center select-none transition-all duration-200 border-primary bg-blue-50 shadow-md"
+                   onclick="selectRole('buyer')">
+                <input type="radio" name="role" value="buyer" id="role-buyer" class="sr-only" checked>
+                <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-2">
+                  <i class="fas fa-search text-xl text-primary"></i>
+                </div>
+                <span class="font-bold text-gray-800 text-sm">Buyer / Tenant</span>
+                <span class="text-xs text-gray-400 mt-0.5">Looking for a property</span>
+              </div>
+              <div id="card-agent"
+                   class="flex flex-col items-center gap-1 p-5 border-2 rounded-2xl cursor-pointer text-center select-none transition-all duration-200 border-gray-200 hover:border-primary hover:bg-blue-50"
+                   onclick="selectRole('agent')">
+                <input type="radio" name="role" value="agent" id="role-agent" class="sr-only">
+                <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-2">
+                  <i class="fas fa-user-tie text-xl text-primary"></i>
+                </div>
+                <span class="font-bold text-gray-800 text-sm">Agent / Owner</span>
+                <span class="text-xs text-gray-400 mt-0.5">Listing a property</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div>
+            <label class="form-label">Password</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <i class="fas fa-lock text-gray-400"></i>
+              </div>
+              <input type="password" name="password1" id="pwd1" class="form-input pl-11 pr-12"
+                     placeholder="At least 8 characters" autocomplete="new-password" required
+                     oninput="checkStrength(this.value)">
+              <button type="button" onclick="togglePwd('pwd1','eye1')" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-primary transition-colors">
+                <i id="eye1" class="fas fa-eye text-base"></i>
+              </button>
+            </div>
+            <!-- Strength bar -->
+            <div class="mt-2 flex gap-1">
+              <div id="s1" class="h-1 flex-1 rounded-full bg-gray-200 transition-colors"></div>
+              <div id="s2" class="h-1 flex-1 rounded-full bg-gray-200 transition-colors"></div>
+              <div id="s3" class="h-1 flex-1 rounded-full bg-gray-200 transition-colors"></div>
+              <div id="s4" class="h-1 flex-1 rounded-full bg-gray-200 transition-colors"></div>
+            </div>
+            <p id="strength-text" class="text-xs text-gray-400 mt-1">Enter a password</p>
+          </div>
+
+          <!-- Confirm Password -->
+          <div>
+            <label class="form-label">Confirm Password</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <i class="fas fa-lock text-gray-400"></i>
+              </div>
+              <input type="password" name="password2" id="pwd2" class="form-input pl-11 pr-12"
+                     placeholder="Repeat your password" autocomplete="new-password" required>
+              <button type="button" onclick="togglePwd('pwd2','eye2')" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-primary transition-colors">
+                <i id="eye2" class="fas fa-eye text-base"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Terms -->
+          <label class="flex items-start gap-3 cursor-pointer">
+            <input type="checkbox" required class="mt-1 w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary">
+            <span class="text-sm text-gray-600">I agree to the <a href="{% url 'core:terms_conditions' %}" class="text-primary font-semibold hover:underline" target="_blank">Terms of Service</a> and <a href="{% url 'core:privacy_policy' %}" class="text-primary font-semibold hover:underline" target="_blank">Privacy Policy</a></span>
+          </label>
+
+          <button type="submit" class="w-full btn-primary py-3.5 text-base font-semibold shadow-lg shadow-primary/25">
+            <i class="fas fa-user-plus mr-2"></i> Create Account
+          </button>
+        </form>
+      </div>
+
+      <p class="text-center text-gray-500 text-sm mt-6">
+        Already have an account?
+        <a href="{% url 'accounts:login' %}" class="text-primary font-semibold hover:text-accent transition-colors">Sign in →</a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePwd(id, eyeId) {
+  const el = document.getElementById(id);
+  const ico = document.getElementById(eyeId);
+  if (el.type === 'password') {
+    el.type = 'text';
+    ico.className = 'fas fa-eye-slash text-base';
+  } else {
+    el.type = 'password';
+    ico.className = 'fas fa-eye text-base';
+  }
+}
+
+function selectRole(role) {
+  const ON  = ['border-primary', 'bg-blue-50', 'shadow-md'];
+  const OFF = ['border-gray-200'];
+  ['buyer', 'agent'].forEach(function(r) {
+    var card = document.getElementById('card-' + r);
+    if (r === role) {
+      OFF.forEach(function(c){ card.classList.remove(c); });
+      ON.forEach(function(c){ card.classList.add(c); });
+    } else {
+      ON.forEach(function(c){ card.classList.remove(c); });
+      OFF.forEach(function(c){ card.classList.add(c); });
+    }
+  });
+  document.getElementById('role-' + role).checked = true;
+}
+
+function checkStrength(val) {
+  const bars = [document.getElementById('s1'), document.getElementById('s2'),
+                document.getElementById('s3'), document.getElementById('s4')];
+  const txt = document.getElementById('strength-text');
+  let score = 0;
+  if (val.length >= 8) score++;
+  if (/[A-Z]/.test(val)) score++;
+  if (/[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+  const colors = ['bg-red-400','bg-orange-400','bg-yellow-400','bg-green-500'];
+  const labels = ['Weak','Fair','Good','Strong'];
+  bars.forEach((b, i) => {
+    b.className = 'h-1 flex-1 rounded-full transition-colors ' + (i < score ? colors[score-1] : 'bg-gray-200');
+  });
+  txt.textContent = score > 0 ? labels[score-1] + ' password' : 'Enter a password';
+  txt.className = 'text-xs mt-1 ' + (score >= 3 ? 'text-green-600' : score >= 2 ? 'text-yellow-600' : 'text-red-500');
+}
+</script>
+{% endblock %}

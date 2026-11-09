@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}{{ agent.get_full_name }} - Agent Profile{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-12">
+  <div class="flex flex-col xl:flex-row gap-10">
+
+    <!-- Agent Info -->
+    <div class="w-full xl:w-80 flex-shrink-0">
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center mb-6">
+        <div class="relative inline-block mb-4">
+          <img src="{{ agent.get_avatar_url }}" class="w-28 h-28 rounded-full object-cover border-4 border-primary/20 mx-auto" alt="{{ agent }}">
+          {% if agent.is_verified %}<div class="absolute bottom-1 right-1 w-7 h-7 bg-green-500 rounded-full border-2 border-white flex items-center justify-center"><i class="fas fa-check text-white text-xs"></i></div>{% endif %}
+        </div>
+        <h1 class="text-2xl font-bold text-primary">{{ agent.get_full_name }}</h1>
+        <p class="text-gray-400 mb-4">{{ agent.city|default:"Tanzania" }}</p>
+        {% if agent.bio %}<p class="text-gray-500 text-sm mb-4">{{ agent.bio }}</p>{% endif %}
+
+        <div class="grid grid-cols-2 gap-3 text-center my-5 border-y border-gray-100 py-5">
+          <div><div class="text-2xl font-bold text-primary">{{ agent.properties.count }}</div><div class="text-xs text-gray-500">Listings</div></div>
+          <div><div class="text-2xl font-bold text-primary">{{ agent.agent_reviews.count }}</div><div class="text-xs text-gray-500">Reviews</div></div>
+        </div>
+
+        <div class="space-y-2 text-sm text-left mb-5">
+          {% if agent.phone %}<div class="flex gap-3 items-center"><i class="fas fa-phone text-accent w-5"></i><span>{{ agent.phone }}</span></div>{% endif %}
+          {% if agent.email %}<div class="flex gap-3 items-center"><i class="fas fa-envelope text-accent w-5"></i><span>{{ agent.email }}</span></div>{% endif %}
+          {% if agent.address %}<div class="flex gap-3 items-center"><i class="fas fa-map-marker-alt text-accent w-5"></i><span>{{ agent.address }}, {{ agent.city }}</span></div>{% endif %}
+          {% if agent.website %}<div class="flex gap-3 items-center"><i class="fas fa-globe text-accent w-5"></i><a href="{{ agent.website }}" class="text-primary hover:underline">Website</a></div>{% endif %}
+        </div>
+
+        {% if agent.phone %}
+        <a href="tel:{{ agent.phone }}" class="block w-full btn-primary mb-2"><i class="fas fa-phone mr-2"></i>Call Agent</a>
+        {% endif %}
+        {% if agent.whatsapp %}
+        <a href="https://wa.me/{{ agent.whatsapp }}" class="block w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold transition-colors text-center mb-2">
+          <i class="fab fa-whatsapp mr-2"></i>WhatsApp
+        </a>
+        {% endif %}
+        {% if user.is_authenticated and agent != user %}
+        <a href="{% url 'messaging:start_conversation' agent.pk %}"
+           class="block w-full border-2 border-primary text-primary hover:bg-primary hover:text-white py-3 rounded-xl font-semibold transition-all text-center">
+          <i class="fas fa-comments mr-2"></i>Contact within System
+        </a>
+        {% else %}
+        <a href="{% url 'accounts:register' %}?next={{ request.path }}"
+           class="block w-full border-2 border-gray-200 text-gray-400 py-3 rounded-xl font-semibold transition-all text-center text-xs cursor-pointer hover:bg-gray-50">
+          <i class="fas fa-lock mr-2"></i>Register to Message Agent
+        </a>
+        {% endif %}
+
+        <!-- Social Links -->
+        {% if agent.facebook or agent.twitter or agent.instagram or agent.linkedin %}
+        <div class="flex justify-center gap-3 mt-4">
+          {% if agent.facebook %}<a href="{{ agent.facebook }}" class="social-icon"><i class="fab fa-facebook-f"></i></a>{% endif %}
+          {% if agent.twitter %}<a href="{{ agent.twitter }}" class="social-icon"><i class="fab fa-twitter"></i></a>{% endif %}
+          {% if agent.instagram %}<a href="{{ agent.instagram }}" class="social-icon"><i class="fab fa-instagram"></i></a>{% endif %}
+          {% if agent.linkedin %}<a href="{{ agent.linkedin }}" class="social-icon"><i class="fab fa-linkedin-in"></i></a>{% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Agent Properties -->
+    <div class="flex-1">
+      <h2 class="text-2xl font-bold text-primary mb-6">{{ agent.get_full_name }}'s Listings</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for prop in page_obj %}
+        {% include 'properties/_card.html' %}
+        {% empty %}
+        <div class="col-span-2 text-center py-12">
+          <i class="fas fa-home text-4xl text-gray-200 mb-3 block"></i>
+          <p class="text-gray-400">No listings yet.</p>
+        </div>
+        {% endfor %}
+      </div>
+      {% if page_obj.has_other_pages %}
+      <div class="flex justify-center mt-8 gap-2">
+        {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="pagination-btn"><i class="fas fa-chevron-left"></i></a>{% endif %}
+        {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}<span class="pagination-btn active">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}<a href="?page={{ num }}" class="pagination-btn">{{ num }}</a>{% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="pagination-btn"><i class="fas fa-chevron-right"></i></a>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

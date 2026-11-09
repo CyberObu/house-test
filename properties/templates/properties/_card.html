@@ -1,0 +1,65 @@
+{% load humanize %}
+<div class="property-card group bg-white rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 border border-gray-100">
+  <!-- Image -->
+  <div class="relative overflow-hidden h-56">
+    {% with prop.get_main_image as img %}
+    {% if img %}
+    <img src="{{ img.image.url }}" alt="{{ prop.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+    {% else %}
+    <div class="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+      <i class="fas fa-home text-5xl text-primary/30"></i>
+    </div>
+    {% endif %}
+    {% endwith %}
+    <!-- Badges -->
+    <div class="absolute top-3 left-3 flex gap-2">
+      <span class="{{ prop.status_badge_color }} text-white text-xs font-bold px-3 py-1 rounded-full uppercase">{{ prop.get_status_display }}</span>
+      {% if prop.label %}<span class="bg-accent text-white text-xs font-bold px-3 py-1 rounded-full uppercase">{{ prop.get_label_display }}</span>{% endif %}
+    </div>
+    <!-- Favorite btn -->
+    {% if user.is_authenticated %}
+    <a href="{% url 'properties:favorite' prop.slug %}" class="absolute top-3 right-3 w-9 h-9 bg-white rounded-full flex items-center justify-center shadow hover:bg-red-50 transition-colors group/fav">
+      <i class="fas fa-heart text-gray-300 group-hover/fav:text-red-500 transition-colors"></i>
+    </a>
+    {% endif %}
+    <!-- Price overlay -->
+    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+      <div class="text-white font-bold text-xl">TZS {{ prop.price|intcomma }}{% if prop.price_postfix %}<span class="text-sm font-normal">/{{ prop.price_postfix }}</span>{% endif %}</div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="p-5">
+    <div class="flex items-center gap-1 text-xs text-gray-400 mb-2">
+      <i class="fas fa-map-marker-alt text-accent"></i>
+      <span>{{ prop.address }}, {{ prop.city }}</span>
+    </div>
+    <h3 class="font-bold text-primary text-lg mb-3 line-clamp-1 group-hover:text-accent transition-colors">
+      <a href="{{ prop.get_absolute_url }}">{{ prop.title }}</a>
+    </h3>
+    <!-- Features -->
+    <div class="flex items-center gap-4 text-sm text-gray-500 border-t border-gray-100 pt-3">
+      {% if prop.bedrooms %}<span class="flex items-center gap-1"><i class="fas fa-bed text-primary"></i> {{ prop.bedrooms }}</span>{% endif %}
+      {% if prop.bathrooms %}<span class="flex items-center gap-1"><i class="fas fa-bath text-primary"></i> {{ prop.bathrooms }}</span>{% endif %}
+      {% if prop.area %}<span class="flex items-center gap-1"><i class="fas fa-ruler-combined text-primary"></i> {{ prop.area|floatformat:0 }} ft²</span>{% endif %}
+      <div class="ml-auto flex items-center gap-1 text-xs">
+        {% if prop.property_type %}<span class="bg-primary/10 text-primary px-2 py-1 rounded-full">{{ prop.property_type.name }}</span>{% endif %}
+      </div>
+    </div>
+    <!-- Agent & Actions -->
+    <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+      <div class="flex items-center gap-2 text-sm">
+        <img src="{{ prop.owner.get_avatar_url }}" class="w-7 h-7 rounded-full object-cover" alt="">
+        <span class="text-gray-500">{{ prop.owner.get_full_name|truncatechars:20 }}</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="{% url 'properties:compare_add' prop.slug %}" class="text-gray-400 hover:text-accent text-xs transition-colors" title="Add to Compare">
+          <i class="fas fa-balance-scale"></i>
+        </a>
+        <a href="{{ prop.get_absolute_url }}" class="text-primary hover:text-accent text-sm font-semibold transition-colors">
+          Details <i class="fas fa-arrow-right ml-1"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

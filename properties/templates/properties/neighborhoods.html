@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Neighborhoods - NyumbaHub{% endblock %}
+{% block content %}
+
+<div class="bg-primary py-12">
+  <div class="max-w-7xl mx-auto px-4">
+    <h1 class="text-3xl font-bold text-white mb-2">Explore Neighborhoods</h1>
+    <p class="text-gray-300">Browse properties by city and area</p>
+  </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 py-12">
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    {% for city in cities %}
+    <a href="{% url 'properties:neighborhood' city.city %}" class="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 p-6 text-center">
+      <div class="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-primary transition-colors">
+        <i class="fas fa-city text-2xl text-primary group-hover:text-white transition-colors"></i>
+      </div>
+      <h3 class="font-bold text-primary text-lg group-hover:text-accent transition-colors">{{ city.city }}</h3>
+      <p class="text-gray-400 text-sm mt-1">{{ city.count }} propert{{ city.count|pluralize:"y,ies" }}</p>
+    </a>
+    {% empty %}
+    <div class="col-span-4 text-center py-12 text-gray-400">No neighborhoods found.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

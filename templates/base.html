@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}{{ site_name }} - Find Your Dream Property{% endblock %}</title>
+  <meta name="description" content="{% block meta_desc %}Find your perfect home, apartment or commercial space.{% endblock %}">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#1D3557', 50:'#e8ecf2', 100:'#c5cfdf', 200:'#9eb0ca', 300:'#7791b5', 400:'#587aa5', 500:'#3a6495', 600:'#325a87', 700:'#284d75', 800:'#1D3557', 900:'#142440' },
+            accent:  { DEFAULT: '#F59E0B', 50:'#fffbeb', 100:'#fef3c7', 500:'#F59E0B', 600:'#d97706', 700:'#b45309' },
+          },
+          fontFamily: { sans: ['Inter','sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <!-- Swiper CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <style>
+    /* ── Override Tailwind CDN cascade for all custom classes ── */
+    .filter-input {
+      display: block !important; width: 100% !important;
+      padding: 0.625rem 0.875rem !important;
+      border: 2px solid #e5e7eb !important; border-radius: 0.75rem !important;
+      background-color: #fff !important; color: #374151 !important;
+      font-size: 0.875rem !important; font-family: inherit !important;
+      outline: none !important;
+      transition: border-color 0.2s, box-shadow 0.2s !important;
+    }
+    .filter-input:focus { border-color: #1D3557 !important; box-shadow: 0 0 0 3px rgba(29,53,87,0.1) !important; }
+    .filter-input::placeholder { color: #9ca3af !important; }
+    select.filter-input {
+      appearance: none !important; -webkit-appearance: none !important;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E") !important;
+      background-repeat: no-repeat !important; background-position: right 0.75rem center !important;
+      background-size: 1.25rem !important; padding-right: 2.5rem !important;
+    }
+    .form-input {
+      display: block !important; width: 100% !important;
+      padding: 0.875rem 1rem !important;
+      border: 2px solid #e5e7eb !important; border-radius: 0.75rem !important;
+      background-color: #fff !important; color: #1f2937 !important;
+      font-size: 0.875rem !important; font-family: inherit !important;
+      outline: none !important;
+      transition: border-color 0.2s, box-shadow 0.2s !important;
+    }
+    .form-input:focus { border-color: #1D3557 !important; box-shadow: 0 0 0 4px rgba(29,53,87,0.1) !important; background-color: #fff !important; }
+    .form-input::placeholder { color: #9ca3af !important; }
+    textarea.filter-input, textarea.form-input { resize: vertical !important; min-height: 80px !important; }
+    .status-pill {
+      display: flex !important; align-items: center !important; justify-content: center !important;
+      padding: 0.5rem 0.25rem !important; border: 2px solid #e5e7eb !important;
+      border-radius: 0.5rem !important; font-size: 0.75rem !important; font-weight: 600 !important;
+      color: #6b7280 !important; cursor: pointer !important; user-select: none !important;
+      background-color: #fff !important;
+      transition: border-color 0.15s, background-color 0.15s, color 0.15s !important;
+    }
+    .status-pill:hover { border-color: #1D3557 !important; color: #1D3557 !important; }
+    .status-pill.active { border-color: #1D3557 !important; background-color: #1D3557 !important; color: #fff !important; }
+    .bed-pill {
+      display: flex !important; align-items: center !important; justify-content: center !important;
+      width: 2.5rem !important; height: 2.25rem !important;
+      border: 2px solid #e5e7eb !important; border-radius: 0.5rem !important;
+      font-size: 0.875rem !important; font-weight: 600 !important;
+      color: #6b7280 !important; cursor: pointer !important; user-select: none !important;
+      background-color: #fff !important;
+      transition: border-color 0.15s, background-color 0.15s, color 0.15s !important;
+    }
+    .bed-pill:hover { border-color: #1D3557 !important; color: #1D3557 !important; }
+    .bed-pill.active { border-color: #1D3557 !important; background-color: #1D3557 !important; color: #fff !important; }
+    .btn-primary {
+      display: inline-flex !important; align-items: center !important; justify-content: center !important;
+      gap: 0.375rem !important; background-color: #1D3557 !important; color: #fff !important;
+      font-weight: 600 !important; font-size: 0.875rem !important;
+      padding: 0.75rem 1.5rem !important; border-radius: 0.75rem !important;
+      border: none !important; cursor: pointer !important; text-decoration: none !important;
+      transition: background-color 0.2s, box-shadow 0.2s, transform 0.2s !important;
+    }
+    .btn-primary:hover { background-color: #284d75 !important; transform: translateY(-1px) !important; }
+    .btn-outline {
+      display: inline-flex !important; align-items: center !important; justify-content: center !important;
+      gap: 0.375rem !important; border: 2px solid #1D3557 !important; color: #1D3557 !important;
+      font-weight: 600 !important; font-size: 0.875rem !important;
+      padding: 0.75rem 1.5rem !important; border-radius: 0.75rem !important;
+      background: transparent !important; cursor: pointer !important; text-decoration: none !important;
+    }
+    .btn-outline:hover { background-color: #1D3557 !important; color: #fff !important; }
+    .btn-accent {
+      display: inline-flex !important; align-items: center !important; justify-content: center !important;
+      gap: 0.375rem !important; background-color: #F59E0B !important; color: #fff !important;
+      font-weight: 600 !important; font-size: 0.875rem !important;
+      padding: 0.75rem 1.5rem !important; border-radius: 0.75rem !important;
+      border: none !important; cursor: pointer !important; text-decoration: none !important;
+    }
+    .btn-accent:hover { background-color: #d97706 !important; }
+    .form-label { display: block !important; font-size: 0.875rem !important; font-weight: 600 !important; color: #374151 !important; margin-bottom: 0.375rem !important; }
+    .filter-label { display: block !important; font-size: 0.75rem !important; font-weight: 600 !important; color: #6b7280 !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; }
+
+    /* ── Icon-padded input overrides (Tailwind pl-*/pr-* blocked by !important above) ── */
+    .form-input.pl-10  { padding-left: 2.5rem !important; }
+    .form-input.pl-11  { padding-left: 2.75rem !important; }
+    .form-input.pr-12  { padding-right: 3rem !important; }
+    .filter-input.pl-9  { padding-left: 2.25rem !important; }
+    .filter-input.pl-10 { padding-left: 2.5rem !important; }
+    .filter-input.pr-10 { padding-right: 2.5rem !important; }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="font-sans text-gray-700 bg-white">
+
+<!-- TOP BAR -->
+<div class="bg-primary text-white text-sm py-2 hidden md:block">
+  <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
+    <div class="flex gap-6">
+      <span><i class="fas fa-phone mr-1 text-accent"></i> +255 659 714 292</span>
+      <span><i class="fas fa-envelope mr-1 text-accent"></i> info@nyumbahub.co.tz</span>
+    </div>
+    <div class="flex gap-4 items-center">
+      <a href="#" class="hover:text-accent"><i class="fab fa-facebook-f"></i></a>
+      <a href="#" class="hover:text-accent"><i class="fab fa-twitter"></i></a>
+      <a href="#" class="hover:text-accent"><i class="fab fa-instagram"></i></a>
+      <a href="#" class="hover:text-accent"><i class="fab fa-linkedin-in"></i></a>
+    </div>
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<nav id="navbar" class="bg-white shadow-sm sticky top-0 z-50 transition-all duration-300">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="flex justify-between items-center h-18 py-3">
+      <!-- Logo -->
+      <a href="{% url 'core:home' %}" class="flex items-center gap-2">
+        <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+          <i class="fas fa-home text-white text-lg"></i>
+        </div>
+        <span class="text-2xl font-bold text-primary">Nyumba<span class="text-accent">Hub</span></span>
+      </a>
+
+      <!-- Desktop Nav -->
+      <div class="hidden lg:flex items-center gap-8">
+        <a href="{% url 'core:home' %}" class="nav-link {% if request.resolver_match.namespace == 'core' and request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a>
+        <!-- Properties dropdown -->
+        <div class="relative group">
+          <a href="{% url 'properties:list' %}" class="nav-link flex items-center gap-1">
+            Properties <i class="fas fa-chevron-down text-xs mt-0.5"></i>
+          </a>
+          <div class="absolute top-full left-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 overflow-hidden">
+            <div class="py-1">
+              <a href="{% url 'properties:list' %}?status=for_sale" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors">
+                <i class="fas fa-home text-blue-500" style="width:14px;text-align:center"></i> For Sale
+              </a>
+              <a href="{% url 'properties:list' %}?status=for_rent" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors">
+                <i class="fas fa-key text-green-500" style="width:14px;text-align:center"></i> For Rent
+              </a>
+              {% if property_types %}<div class="border-t border-gray-100 my-1"></div>{% endif %}
+              {% for ptype in property_types %}
+              <a href="{% url 'properties:by_type' ptype.slug %}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors">
+                <i class="{{ ptype.icon }} text-primary" style="width:14px;text-align:center"></i> {{ ptype.name }}
+              </a>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        <a href="{% url 'properties:map' %}" class="nav-link"><i class="fas fa-map-marked-alt mr-1"></i>Map</a>
+        <div class="relative group">
+          <a href="{% url 'agents:list' %}" class="nav-link flex items-center gap-1">
+            Agents <i class="fas fa-chevron-down text-xs mt-0.5"></i>
+          </a>
+          <div class="absolute top-full left-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 overflow-hidden">
+            <div class="py-1">
+              <a href="{% url 'agents:list' %}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors">
+                <i class="fas fa-user-tie text-primary" style="width:14px;text-align:center"></i> All Agents
+              </a>
+              <a href="{% url 'agents:agency_list' %}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors">
+                <i class="fas fa-building text-primary" style="width:14px;text-align:center"></i> Agencies
+              </a>
+            </div>
+          </div>
+        </div>
+        <a href="{% url 'blog:list' %}" class="nav-link">Blog</a>
+        <a href="{% url 'core:about' %}" class="nav-link">About</a>
+        <a href="{% url 'core:contact' %}" class="nav-link">Contact</a>
+      </div>
+
+      <!-- Auth Buttons -->
+      <div class="hidden lg:flex items-center gap-3">
+        {% if user.is_authenticated %}
+        <div class="relative group">
+          <button class="flex items-center gap-2 text-gray-700 hover:text-primary font-medium">
+            <img src="{{ user.get_avatar_url }}" class="w-8 h-8 rounded-full object-cover border-2 border-primary" alt="">
+            <span>{{ user.first_name|default:user.username }}</span>
+            <i class="fas fa-chevron-down text-xs"></i>
+          </button>
+          <div class="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 overflow-hidden">
+            <div class="px-4 py-3 bg-gray-50 border-b border-gray-100">
+              <div class="text-xs text-gray-400 mb-0.5">Signed in as</div>
+              <div class="font-semibold text-primary text-sm truncate">{{ user.get_full_name|default:user.email }}</div>
+              <div class="text-xs text-accent font-semibold capitalize mt-0.5">{{ user.role }}</div>
+            </div>
+            <div class="py-1">
+              <a href="{% url 'dashboard:home' %}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors">
+                <i class="fas fa-tachometer-alt text-primary" style="width:14px;text-align:center"></i> Dashboard
+              </a>
+              {% if user.is_agent %}
+              <a href="{% url 'dashboard:my_properties' %}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors">
+                <i class="fas fa-home text-primary" style="width:14px;text-align:center"></i> My Listings
+              </a>
+              <a href="{% url 'dashboard:my_inquiries' %}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors">
+                <i class="fas fa-envelope text-primary" style="width:14px;text-align:center"></i> Inquiries
+              </a>
+              {% else %}
+              <a href="{% url 'dashboard:my_favorites' %}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors">
+                <i class="fas fa-heart text-primary" style="width:14px;text-align:center"></i> Saved Homes
+              </a>
+              <a href="{% url 'dashboard:my_tours' %}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors">
+                <i class="fas fa-calendar-check text-primary" style="width:14px;text-align:center"></i> My Tours
+              </a>
+              {% endif %}
+              <a href="{% url 'messaging:inbox' %}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors">
+                <i class="fas fa-comments text-primary" style="width:14px;text-align:center"></i> Messages
+              </a>
+              <a href="{% url 'dashboard:profile_settings' %}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors">
+                <i class="fas fa-cog text-primary" style="width:14px;text-align:center"></i> Settings
+              </a>
+              <div class="border-t border-gray-100 my-1"></div>
+              <a href="{% url 'accounts:logout' %}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors">
+                <i class="fas fa-sign-out-alt" style="width:14px;text-align:center"></i> Logout
+              </a>
+            </div>
+          </div>
+        </div>
+        {% if user.is_agent %}
+        <a href="{% url 'dashboard:add_property' %}" class="btn-primary text-sm">
+          <i class="fas fa-plus mr-1"></i> Add Listing
+        </a>
+        {% else %}
+        <a href="{% url 'properties:list' %}" class="btn-primary text-sm">
+          <i class="fas fa-search mr-1"></i> Browse
+        </a>
+        {% endif %}
+        {% else %}
+        <a href="{% url 'accounts:login' %}" class="text-primary font-semibold hover:text-accent transition">Sign In</a>
+        <a href="{% url 'accounts:register' %}" class="btn-primary text-sm">Register</a>
+        {% endif %}
+      </div>
+
+      <!-- Mobile menu button -->
+      <button id="mobile-menu-btn" class="lg:hidden p-2 rounded-lg hover:bg-gray-100">
+        <i class="fas fa-bars text-xl text-primary"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div id="mobile-menu" class="lg:hidden hidden bg-white border-t border-gray-100 px-4 py-4">
+    <div class="flex flex-col gap-3">
+      <a href="{% url 'core:home' %}" class="mobile-nav-link">Home</a>
+      <a href="{% url 'properties:list' %}" class="mobile-nav-link">Properties</a>
+      <a href="{% url 'agents:list' %}" class="mobile-nav-link">Agents</a>
+      <a href="{% url 'blog:list' %}" class="mobile-nav-link">Blog</a>
+      <a href="{% url 'core:about' %}" class="mobile-nav-link">About</a>
+      <a href="{% url 'core:contact' %}" class="mobile-nav-link">Contact</a>
+      {% if user.is_authenticated %}
+      <hr>
+      <a href="{% url 'dashboard:home' %}" class="mobile-nav-link">Dashboard</a>
+      <a href="{% url 'accounts:logout' %}" class="mobile-nav-link text-red-500">Logout</a>
+      {% else %}
+      <hr>
+      <a href="{% url 'accounts:login' %}" class="btn-primary text-center">Sign In</a>
+      <a href="{% url 'accounts:register' %}" class="btn-outline text-center">Register</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+<!-- MESSAGES -->
+{% if messages %}
+<div class="fixed top-20 right-4 z-50 flex flex-col gap-2 w-80" id="messages-container">
+  {% for message in messages %}
+  <div class="message-toast {% if message.tags == 'error' %}bg-red-500{% elif message.tags == 'success' %}bg-green-500{% elif message.tags == 'warning' %}bg-yellow-500{% else %}bg-blue-500{% endif %} text-white px-5 py-3 rounded-xl shadow-lg flex items-center justify-between gap-3 animate-slide-in">
+    <span>{{ message }}</span>
+    <button onclick="this.parentElement.remove()" class="text-white/80 hover:text-white"><i class="fas fa-times"></i></button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- MAIN CONTENT -->
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<!-- FOOTER -->
+<footer class="bg-primary text-white mt-20">
+  <div class="max-w-7xl mx-auto px-4 py-16">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+      <!-- Brand -->
+      <div>
+        <a href="{% url 'core:home' %}" class="flex items-center gap-2 mb-4">
+          <div class="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
+            <i class="fas fa-home text-white text-lg"></i>
+          </div>
+          <span class="text-2xl font-bold">Nyumba<span class="text-accent">Hub</span></span>
+        </a>
+        <p class="text-gray-300 text-sm leading-relaxed mb-4">Tanzania's premier real estate platform. Find your dream home, apartment, or investment property.</p>
+        <div class="flex gap-3">
+          <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+          <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+          <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div>
+        <h4 class="text-lg font-semibold mb-5 relative">
+          Quick Links
+          <span class="absolute -bottom-2 left-0 w-10 h-0.5 bg-accent"></span>
+        </h4>
+        <ul class="space-y-3 mt-4">
+          <li><a href="{% url 'core:home' %}" class="footer-link">Home</a></li>
+          <li><a href="{% url 'properties:list' %}" class="footer-link">Properties</a></li>
+          <li><a href="{% url 'agents:list' %}" class="footer-link">Our Agents</a></li>
+          <li><a href="{% url 'blog:list' %}" class="footer-link">Blog & News</a></li>
+          <li><a href="{% url 'properties:neighborhoods' %}" class="footer-link">Neighborhoods</a></li>
+          <li><a href="{% url 'agents:agency_list' %}" class="footer-link">Agencies</a></li>
+          <li><a href="{% url 'core:about' %}" class="footer-link">About Us</a></li>
+          <li><a href="{% url 'core:contact' %}" class="footer-link">Contact</a></li>
+        </ul>
+      </div>
+
+      <!-- Property Types -->
+      <div>
+        <h4 class="text-lg font-semibold mb-5 relative">
+          Property Types
+          <span class="absolute -bottom-2 left-0 w-10 h-0.5 bg-accent"></span>
+        </h4>
+        <ul class="space-y-3 mt-4">
+          {% for ptype in property_types %}
+          <li><a href="{% url 'properties:by_type' ptype.slug %}" class="footer-link">{{ ptype.name }}</a></li>
+          {% endfor %}
+          <li><a href="{% url 'properties:list' %}?status=for_sale" class="footer-link">For Sale</a></li>
+          <li><a href="{% url 'properties:list' %}?status=for_rent" class="footer-link">For Rent</a></li>
+        </ul>
+      </div>
+
+      <!-- Contact -->
+      <div>
+        <h4 class="text-lg font-semibold mb-5 relative">
+          Contact Us
+          <span class="absolute -bottom-2 left-0 w-10 h-0.5 bg-accent"></span>
+        </h4>
+        <ul class="space-y-4 mt-4 text-gray-300 text-sm">
+          <li class="flex gap-3"><i class="fas fa-map-marker-alt text-accent mt-0.5 w-5"></i><span>Dar es Salaam, Tanzania</span></li>
+          <li class="flex gap-3"><i class="fas fa-phone text-accent mt-0.5 w-5"></i><span>+255 659 714 292</span></li>
+          <li class="flex gap-3"><i class="fas fa-envelope text-accent mt-0.5 w-5"></i><span>info@nyumbahub.co.tz</span></li>
+          <li class="flex gap-3"><i class="fas fa-clock text-accent mt-0.5 w-5"></i><span>Mon - Fri: 8am - 6pm</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="border-t border-white/10">
+    <div class="max-w-7xl mx-auto px-4 py-5 flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
+      <p>&copy; {% now "Y" %} NyumbaHub. All rights reserved.</p>
+      <div class="flex gap-5 mt-3 md:mt-0">
+        <a href="{% url 'core:privacy_policy' %}" class="hover:text-white">Privacy Policy</a>
+        <a href="{% url 'core:terms_conditions' %}" class="hover:text-white">Terms & Conditions</a>
+        <a href="{% url 'core:contact' %}" class="hover:text-white">Contact</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+{% load static %}
+<script src="{% static 'js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
+
+<script>
+  // Auto-hide messages
+  setTimeout(() => {
+    document.querySelectorAll('.message-toast').forEach(el => el.remove());
+  }, 5000);
+
+  // Mobile menu toggle
+  document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+    document.getElementById('mobile-menu').classList.toggle('hidden');
+  });
+</script>
+</body>
+</html>

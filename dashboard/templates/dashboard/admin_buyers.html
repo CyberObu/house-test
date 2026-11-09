@@ -1,0 +1,126 @@
+{% extends 'dashboard/base_platform.html' %}
+{% load humanize %}
+{% block title %}All Buyers & Tenants - NyumbaHub{% endblock %}
+{% block breadcrumb %}All Buyers & Tenants{% endblock %}
+
+{% block platform_content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold" style="color:#1D3557">All Buyers & Tenants</h1>
+    <p class="text-gray-500 mt-1">{{ total }} buyer{{ total|pluralize }} registered on NyumbaHub.</p>
+  </div>
+</div>
+
+<!-- Search & Filter -->
+<form method="get" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-5 flex flex-wrap gap-3 items-center">
+  <div class="relative flex-1 min-w-48">
+    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+    <input type="text" name="q" value="{{ search }}" placeholder="Search name, email, phone…"
+           class="form-input" style="padding-left:2.25rem!important">
+  </div>
+  <select name="status" class="form-input w-auto min-w-36">
+    <option value="">All Status</option>
+    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+    <option value="held" {% if status_filter == 'held' %}selected{% endif %}>Suspended</option>
+  </select>
+  <button type="submit" class="btn-primary px-5"><i class="fas fa-filter mr-2"></i>Filter</button>
+  {% if search or status_filter %}
+  <a href="{% url 'platform:buyers' %}" class="btn-outline px-4">Clear</a>
+  {% endif %}
+</form>
+
+<!-- Table -->
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+        <tr>
+          <th class="px-5 py-4 text-left">Buyer / Tenant</th>
+          <th class="px-5 py-4 text-left">Phone</th>
+          <th class="px-5 py-4 text-left">City</th>
+          <th class="px-5 py-4 text-left">Joined</th>
+          <th class="px-5 py-4 text-left">Status</th>
+          <th class="px-5 py-4 text-left">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        {% for buyer in page_obj %}
+        <tr class="hover:bg-gray-50 {% if not buyer.is_active %}opacity-60{% endif %}">
+          <td class="px-5 py-4">
+            <div class="flex items-center gap-3">
+              <img src="{{ buyer.get_avatar_url }}" class="w-10 h-10 rounded-xl object-cover flex-shrink-0 border border-gray-100">
+              <div>
+                <div class="font-semibold text-gray-800">{{ buyer.get_full_name|default:"—" }}</div>
+                <div class="text-xs text-gray-400">{{ buyer.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td class="px-5 py-4 text-gray-600">{{ buyer.phone|default:"—" }}</td>
+          <td class="px-5 py-4 text-gray-600">{{ buyer.city|default:"—" }}</td>
+          <td class="px-5 py-4 text-gray-500 text-xs">{{ buyer.date_joined|date:"M j, Y" }}</td>
+          <td class="px-5 py-4">
+            {% if buyer.is_active %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-green-50 text-green-700">
+              <i class="fas fa-circle text-xs"></i> Active
+            </span>
+            {% else %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-red-50 text-red-700">
+              <i class="fas fa-ban text-xs"></i> Suspended
+            </span>
+            {% endif %}
+          </td>
+          <td class="px-5 py-4">
+            <div class="flex items-center gap-2 flex-wrap">
+              <a href="{% url 'platform:edit_user' buyer.pk %}" class="px-3 py-1.5 text-xs font-semibold rounded-xl border border-gray-200 text-gray-600 hover:border-primary hover:text-primary transition">
+                <i class="fas fa-edit mr-1"></i> Edit
+              </a>
+              <form method="post" action="{% url 'platform:toggle_hold' buyer.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="px-3 py-1.5 text-xs font-semibold rounded-xl border transition
+                  {% if buyer.is_active %}border-orange-200 text-orange-600 hover:bg-orange-50{% else %}border-green-200 text-green-600 hover:bg-green-50{% endif %}">
+                  {% if buyer.is_active %}<i class="fas fa-ban mr-1"></i> Suspend{% else %}<i class="fas fa-check-circle mr-1"></i> Activate{% endif %}
+                </button>
+              </form>
+              <button onclick="confirmDelete({{ buyer.pk }}, '{{ buyer.get_full_name|escapejs|default:buyer.email }}')"
+                      class="px-3 py-1.5 text-xs font-semibold rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition">
+                <i class="fas fa-trash mr-1"></i> Delete
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center py-16">
+            <i class="fas fa-users text-5xl text-gray-200 mb-4 block"></i>
+            <p class="text-gray-400">No buyers found.</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if page_obj.has_other_pages %}
+  <div class="p-5 border-t border-gray-100 flex justify-center gap-2">
+    {% if page_obj.has_previous %}<a href="?{% if search %}q={{ search }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}page={{ page_obj.previous_page_number }}" class="px-4 py-2 border border-gray-200 rounded-xl text-sm hover:border-primary transition">&larr; Prev</a>{% endif %}
+    <span class="px-4 py-2 text-sm text-gray-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?{% if search %}q={{ search }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}page={{ page_obj.next_page_number }}" class="px-4 py-2 border border-gray-200 rounded-xl text-sm hover:border-primary transition">Next &rarr;</a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<!-- Delete confirm form (hidden) -->
+<form id="delete-form" method="post" style="display:none">{% csrf_token %}</form>
+
+{% endblock platform_content %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(pk, name) {
+  if (confirm(`Permanently delete "${name}"? This cannot be undone.`)) {
+    const form = document.getElementById('delete-form');
+    form.action = `/platform/users/${pk}/delete/`;
+    form.submit();
+  }
+}
+</script>
+{% endblock %}

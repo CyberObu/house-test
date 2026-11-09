@@ -1,0 +1,134 @@
+{% extends 'dashboard/base_platform.html' %}
+{% block title %}Reports Inbox - NyumbaHub{% endblock %}
+{% block breadcrumb %}Reports Inbox{% endblock %}
+
+{% block platform_content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold" style="color:#1D3557">Reports Inbox</h1>
+    <p class="text-gray-500 mt-1">Confidential misconduct reports submitted by users.</p>
+  </div>
+  <div class="flex gap-2">
+    <a href="?status=open" class="px-4 py-2 rounded-xl text-sm font-semibold transition {% if status_filter == 'open' %}text-white{% else %}border border-gray-200 text-gray-600 hover:border-gray-400{% endif %}" style="{% if status_filter == 'open' %}background-color:#1D3557{% endif %}">
+      Open {% if open_count %}<span class="ml-1 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{{ open_count }}</span>{% endif %}
+    </a>
+    <a href="?status=resolved" class="px-4 py-2 rounded-xl text-sm font-semibold border transition {% if status_filter == 'resolved' %}bg-green-500 text-white border-green-500{% else %}border-gray-200 text-gray-600 hover:border-green-400{% endif %}">Resolved</a>
+    <a href="?status=all" class="px-4 py-2 rounded-xl text-sm font-semibold border border-gray-200 text-gray-600 hover:border-gray-400 transition {% if status_filter == 'all' %}bg-gray-700 text-white border-gray-700{% endif %}">All</a>
+  </div>
+</div>
+
+<div class="space-y-4">
+{% for report in page_obj %}
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+  <div class="flex flex-col md:flex-row gap-5">
+
+    <!-- Reporter -->
+    <div class="flex-1 min-w-0">
+      <div class="flex flex-wrap items-start gap-3 mb-3">
+        <div class="flex items-center gap-2">
+          <img src="{{ report.reporter.get_avatar_url }}" class="w-8 h-8 rounded-xl object-cover border border-gray-100 flex-shrink-0">
+          <div>
+            <span class="text-xs text-gray-400">Reporter</span>
+            <div class="text-sm font-semibold text-gray-700">{{ report.reporter.get_full_name|default:report.reporter.email }}</div>
+            <div class="text-xs text-gray-400 capitalize">{{ report.reporter.role }}</div>
+          </div>
+        </div>
+        <div class="text-gray-300 hidden md:block self-center"><i class="fas fa-arrow-right"></i></div>
+        <div class="flex items-center gap-2">
+          <img src="{{ report.reported_user.get_avatar_url }}" class="w-8 h-8 rounded-xl object-cover border border-gray-100 flex-shrink-0">
+          <div>
+            <span class="text-xs text-gray-400">Reported</span>
+            <div class="text-sm font-semibold text-gray-700">{{ report.reported_user.get_full_name|default:report.reported_user.email }}</div>
+            <div class="text-xs text-gray-400 capitalize">{{ report.reported_user.role }}</div>
+          </div>
+        </div>
+        <div class="ml-auto flex items-center gap-2">
+          <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-orange-50 text-orange-700">{{ report.get_reason_display }}</span>
+          {% if report.is_resolved %}
+          <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-green-50 text-green-700"><i class="fas fa-check mr-1"></i>Resolved</span>
+          {% else %}
+          <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-red-50 text-red-700"><i class="fas fa-exclamation-circle mr-1"></i>Open</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="bg-gray-50 rounded-xl p-3 mb-3">
+        <p class="text-xs text-gray-500 font-semibold mb-1">Description</p>
+        <p class="text-sm text-gray-700">{{ report.description }}</p>
+      </div>
+
+      {% if report.admin_notes %}
+      <div class="bg-blue-50 rounded-xl p-3 mb-3">
+        <p class="text-xs text-blue-600 font-semibold mb-1"><i class="fas fa-shield-alt mr-1"></i>Admin Notes</p>
+        <p class="text-sm text-blue-700">{{ report.admin_notes }}</p>
+      </div>
+      {% endif %}
+
+      <div class="flex items-center gap-4 text-xs text-gray-400">
+        <span><i class="fas fa-clock mr-1"></i>{{ report.created_at|date:"F j, Y H:i" }}</span>
+        {% if not report.is_resolved %}
+        <div class="ml-auto flex gap-2">
+          <a href="{% url 'platform:edit_user' report.reported_user.pk %}" class="px-3 py-1.5 text-xs font-semibold rounded-xl border border-gray-200 text-gray-600 hover:border-primary hover:text-primary transition">
+            <i class="fas fa-user-edit mr-1"></i> Edit User
+          </a>
+          <form method="post" action="{% url 'platform:toggle_hold' report.reported_user.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="px-3 py-1.5 text-xs font-semibold rounded-xl border border-orange-200 text-orange-600 hover:bg-orange-50 transition">
+              <i class="fas fa-ban mr-1"></i> Suspend User
+            </button>
+          </form>
+          <button onclick="openResolveModal({{ report.pk }})" class="px-3 py-1.5 text-xs font-semibold rounded-xl border border-green-200 text-green-600 hover:bg-green-50 transition">
+            <i class="fas fa-check mr-1"></i> Resolve
+          </button>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</div>
+{% empty %}
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-16 text-center">
+  <i class="fas fa-flag text-5xl text-gray-200 mb-4 block"></i>
+  <p class="text-gray-400 font-medium">No {{ status_filter }} reports.</p>
+</div>
+{% endfor %}
+</div>
+
+{% if page_obj.has_other_pages %}
+<div class="flex justify-center gap-2 mt-6">
+  {% if page_obj.has_previous %}<a href="?status={{ status_filter }}&page={{ page_obj.previous_page_number }}" class="px-4 py-2 border border-gray-200 rounded-xl text-sm hover:border-primary transition">&larr; Prev</a>{% endif %}
+  <span class="px-4 py-2 text-sm text-gray-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a href="?status={{ status_filter }}&page={{ page_obj.next_page_number }}" class="px-4 py-2 border border-gray-200 rounded-xl text-sm hover:border-primary transition">Next &rarr;</a>{% endif %}
+</div>
+{% endif %}
+
+<!-- Resolve Modal -->
+<div id="resolve-modal" class="fixed inset-0 bg-black/50 z-50 items-center justify-center p-4" style="display:none">
+  <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+    <h3 class="font-bold text-lg mb-1" style="color:#1D3557">Resolve Report</h3>
+    <p class="text-sm text-gray-400 mb-4">Add optional admin notes before closing this report.</p>
+    <form id="resolve-form" method="post">
+      {% csrf_token %}
+      <label class="form-label">Admin Notes <span class="text-gray-400 font-normal">(optional)</span></label>
+      <textarea name="admin_notes" rows="3" class="form-input mt-1 mb-4" placeholder="Action taken, decision made…"></textarea>
+      <div class="flex gap-3">
+        <button type="submit" class="btn-primary flex-1"><i class="fas fa-check mr-2"></i>Mark Resolved</button>
+        <button type="button" onclick="closeResolveModal()" class="btn-outline flex-1">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock platform_content %}
+
+{% block extra_js %}
+<script>
+function openResolveModal(pk) {
+  document.getElementById('resolve-form').action = `/platform/reports/${pk}/resolve/`;
+  document.getElementById('resolve-modal').style.display = 'flex';
+}
+function closeResolveModal() {
+  document.getElementById('resolve-modal').style.display = 'none';
+}
+</script>
+{% endblock %}

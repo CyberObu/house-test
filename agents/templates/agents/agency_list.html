@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Agencies - NyumbaHub{% endblock %}
+{% block content %}
+
+<div class="bg-primary py-12">
+  <div class="max-w-7xl mx-auto px-4">
+    <h1 class="text-3xl font-bold text-white mb-2">Real Estate Agencies</h1>
+    <p class="text-gray-300">Find trusted agencies and their teams</p>
+  </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 py-12">
+  {% if page_obj %}
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    {% for agency in page_obj %}
+    <a href="{{ agency.get_absolute_url }}" class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group">
+      <!-- Cover -->
+      <div class="h-32 bg-gradient-to-br from-primary to-primary/70 relative">
+        {% if agency.cover %}<img src="{{ agency.cover.url }}" class="w-full h-full object-cover" alt="">{% endif %}
+        {% if agency.is_verified %}
+        <span class="absolute top-3 right-3 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+          <i class="fas fa-check-circle mr-1"></i>Verified
+        </span>
+        {% endif %}
+      </div>
+      <!-- Logo & Info -->
+      <div class="px-6 pb-6">
+        <div class="flex items-end gap-4 -mt-8 mb-4">
+          <div class="w-16 h-16 rounded-xl border-4 border-white shadow-md bg-white flex items-center justify-center overflow-hidden flex-shrink-0">
+            {% if agency.logo %}
+            <img src="{{ agency.logo.url }}" class="w-full h-full object-cover" alt="{{ agency.name }}">
+            {% else %}
+            <i class="fas fa-building text-2xl text-primary/40"></i>
+            {% endif %}
+          </div>
+        </div>
+        <h3 class="font-bold text-primary text-lg group-hover:text-accent transition-colors">{{ agency.name }}</h3>
+        {% if agency.city %}<p class="text-gray-400 text-sm mt-1"><i class="fas fa-map-marker-alt text-accent mr-1"></i>{{ agency.city }}</p>{% endif %}
+        {% if agency.description %}<p class="text-gray-500 text-sm mt-2 line-clamp-2">{{ agency.description }}</p>{% endif %}
+        <div class="flex items-center gap-4 mt-4 text-sm text-gray-500 border-t border-gray-100 pt-4">
+          <span><i class="fas fa-users text-primary mr-1"></i>{{ agency.get_agents.count }} agents</span>
+          {% if agency.phone %}<span><i class="fas fa-phone text-primary mr-1"></i>{{ agency.phone }}</span>{% endif %}
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <div class="flex justify-center mt-10 gap-2">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="pagination-btn"><i class="fas fa-chevron-left"></i></a>{% endif %}
+    {% for num in page_obj.paginator.page_range %}
+    {% if page_obj.number == num %}<span class="pagination-btn active">{{ num }}</span>
+    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}<a href="?page={{ num }}" class="pagination-btn">{{ num }}</a>{% endif %}
+    {% endfor %}
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="pagination-btn"><i class="fas fa-chevron-right"></i></a>{% endif %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="text-center py-20">
+    <i class="fas fa-building text-6xl text-gray-200 mb-4"></i>
+    <p class="text-gray-400 text-lg">No agencies listed yet.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

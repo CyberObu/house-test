@@ -1,0 +1,49 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}Inquiries - NyumbaHub{% endblock %}
+{% block breadcrumb %}<i class="fas fa-chevron-right text-xs mx-1"></i><span class="text-primary font-semibold">Inquiries</span>{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-primary">Inquiries</h1>
+  <p class="text-gray-500 mt-1">Messages from interested buyers and tenants</p>
+</div>
+
+<div class="space-y-4">
+  {% for inq in inquiries %}
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+    <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+      <div class="flex items-start gap-4">
+        <div class="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+          {{ inq.name.0|upper }}
+        </div>
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="font-bold text-primary">{{ inq.name }}</span>
+            <span class="text-xs text-gray-400">{{ inq.created_at|timesince }} ago</span>
+          </div>
+          <div class="text-sm text-gray-500 mb-1">
+            <i class="fas fa-envelope text-accent mr-1"></i>{{ inq.email }}
+            {% if inq.phone %} &nbsp;·&nbsp; <i class="fas fa-phone text-accent mr-1"></i>{{ inq.phone }}{% endif %}
+          </div>
+          <div class="text-sm text-gray-400 mb-2">
+            <i class="fas fa-home text-primary mr-1"></i>
+            <a href="{{ inq.property.get_absolute_url }}" class="hover:text-primary">{{ inq.property.title }}</a>
+          </div>
+          <p class="text-gray-600 text-sm bg-gray-50 rounded-xl px-4 py-3">{{ inq.message }}</p>
+        </div>
+      </div>
+      <div class="flex gap-2 flex-shrink-0">
+        <a href="mailto:{{ inq.email }}" class="btn-primary text-sm py-2 px-4"><i class="fas fa-reply mr-1"></i>Reply</a>
+        {% if inq.phone %}<a href="tel:{{ inq.phone }}" class="btn-outline text-sm py-2 px-4"><i class="fas fa-phone mr-1"></i>Call</a>{% endif %}
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-16 text-center">
+    <i class="fas fa-inbox text-5xl text-gray-200 mb-4 block"></i>
+    <h3 class="text-lg font-semibold text-gray-400">No inquiries yet</h3>
+    <p class="text-gray-400 text-sm mt-1">When buyers contact you about your listings, they'll appear here.</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

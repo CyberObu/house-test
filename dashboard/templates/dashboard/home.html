@@ -1,0 +1,347 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load humanize %}
+{% block title %}Dashboard - NyumbaHub{% endblock %}
+{% block breadcrumb %}<i class="fas fa-chevron-right text-xs mx-1"></i><span class="text-primary font-semibold">Overview</span>{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-8">
+  <h1 class="text-2xl font-bold text-primary">Welcome back, {{ user.first_name|default:user.username }}!</h1>
+  <p class="text-gray-500 mt-1">
+    {% if user.is_agent %}Here's how your listings are performing.{% else %}Here's a summary of your activity.{% endif %}
+  </p>
+</div>
+
+{% if user.is_agent %}
+<!-- ═══════════════════ AGENT VIEW ═══════════════════ -->
+
+<!-- Agent Stats -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+  <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+    <div class="flex items-center justify-between mb-3">
+      <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+        <i class="fas fa-home text-blue-500"></i>
+      </div>
+      <span class="text-xs text-green-500 font-semibold bg-green-50 px-2 py-1 rounded-full">Active</span>
+    </div>
+    <div class="text-2xl font-bold text-primary">{{ properties_count }}</div>
+    <div class="text-sm text-gray-500 mt-1">My Listings</div>
+  </div>
+
+  <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+    <div class="flex items-center justify-between mb-3">
+      <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+        <i class="fas fa-eye text-purple-500"></i>
+      </div>
+    </div>
+    <div class="text-2xl font-bold text-primary">{{ total_views }}</div>
+    <div class="text-sm text-gray-500 mt-1">Total Views</div>
+  </div>
+
+  <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+    <div class="flex items-center justify-between mb-3">
+      <div class="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
+        <i class="fas fa-envelope text-yellow-500"></i>
+      </div>
+      {% if inquiries_count > 0 %}<span class="text-xs text-red-500 font-semibold bg-red-50 px-2 py-1 rounded-full">{{ inquiries_count }} new</span>{% endif %}
+    </div>
+    <div class="text-2xl font-bold text-primary">{{ inquiries_count }}</div>
+    <div class="text-sm text-gray-500 mt-1">New Inquiries</div>
+  </div>
+
+  <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+    <div class="flex items-center justify-between mb-3">
+      <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+        <i class="fas fa-calendar-check text-green-500"></i>
+      </div>
+      {% if pending_tours > 0 %}<span class="text-xs text-orange-500 font-semibold bg-orange-50 px-2 py-1 rounded-full">{{ pending_tours }} pending</span>{% endif %}
+    </div>
+    <div class="text-2xl font-bold text-primary">{{ pending_tours }}</div>
+    <div class="text-sm text-gray-500 mt-1">Pending Tours</div>
+  </div>
+</div>
+
+<!-- Agent Analytics Chart -->
+{% if top_listings %}
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
+  <h3 class="font-bold text-primary text-lg mb-5 flex items-center gap-2">
+    <i class="fas fa-chart-bar text-accent"></i> Listing Performance
+  </h3>
+  <canvas id="analyticsChart" height="100"></canvas>
+</div>
+{% endif %}
+
+<!-- Agent Quick Actions -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+  <div class="bg-gradient-to-br from-primary to-primary/80 rounded-2xl p-6 text-white">
+    <h3 class="font-bold text-lg mb-2">Add New Listing</h3>
+    <p class="text-gray-300 text-sm mb-4">List your property and reach thousands of buyers.</p>
+    <a href="{% url 'dashboard:add_property' %}" class="inline-flex items-center gap-2 bg-accent hover:bg-yellow-600 text-white px-5 py-2 rounded-xl font-semibold text-sm transition-all">
+      <i class="fas fa-plus"></i> Add Property
+    </a>
+  </div>
+  <div class="bg-gradient-to-br from-accent/90 to-accent rounded-2xl p-6 text-white">
+    <h3 class="font-bold text-lg mb-2">Upgrade Your Plan</h3>
+    <p class="text-white/80 text-sm mb-4">Get more listings and premium features.</p>
+    <a href="{% url 'dashboard:payments' %}" class="inline-flex items-center gap-2 bg-white text-accent hover:bg-gray-100 px-5 py-2 rounded-xl font-semibold text-sm transition-all">
+      <i class="fas fa-crown"></i> View Plans
+    </a>
+  </div>
+</div>
+
+<!-- Agent My Listings table -->
+{% if my_properties %}
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+  <div class="flex justify-between items-center mb-5">
+    <h3 class="font-bold text-primary text-lg">My Listings</h3>
+    <a href="{% url 'dashboard:my_properties' %}" class="text-sm text-primary hover:text-accent font-medium">View All</a>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-gray-400 border-b border-gray-100">
+        <th class="pb-3 font-medium">Property</th>
+        <th class="pb-3 font-medium">Status</th>
+        <th class="pb-3 font-medium">Price</th>
+        <th class="pb-3 font-medium">Views</th>
+        <th class="pb-3 font-medium">Actions</th>
+      </tr></thead>
+      <tbody class="divide-y divide-gray-50">
+        {% for prop in my_properties %}
+        <tr class="hover:bg-gray-50">
+          <td class="py-3">
+            <div class="flex items-center gap-3">
+              {% with prop.get_main_image as img %}
+              {% if img %}<img src="{{ img.image.url }}" class="w-12 h-10 rounded-lg object-cover flex-shrink-0">
+              {% else %}<div class="w-12 h-10 bg-gray-100 rounded-lg flex items-center justify-center"><i class="fas fa-home text-gray-300"></i></div>{% endif %}
+              {% endwith %}
+              <div>
+                <div class="font-medium text-primary line-clamp-1">{{ prop.title|truncatechars:30 }}</div>
+                <div class="text-xs text-gray-400">{{ prop.city }}</div>
+              </div>
+            </div>
+          </td>
+          <td class="py-3"><span class="{{ prop.status_badge_color }} text-white text-xs px-2 py-1 rounded-full">{{ prop.get_status_display }}</span></td>
+          <td class="py-3 font-semibold text-primary">TZS {{ prop.price|intcomma }}</td>
+          <td class="py-3 text-gray-500">{{ prop.views_count }}</td>
+          <td class="py-3">
+            <div class="flex gap-2">
+              <a href="{{ prop.get_absolute_url }}" class="text-blue-500 hover:text-blue-700" title="View"><i class="fas fa-eye"></i></a>
+              <a href="{% url 'dashboard:edit_property' prop.slug %}" class="text-green-500 hover:text-green-700" title="Edit"><i class="fas fa-edit"></i></a>
+              <form method="post" action="{% url 'dashboard:delete_property' prop.slug %}" onsubmit="return confirm('Delete this property?')">
+                {% csrf_token %}<button type="submit" class="text-red-400 hover:text-red-600" title="Delete"><i class="fas fa-trash"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 mb-6 text-center">
+  <div class="w-16 h-16 bg-primary/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+    <i class="fas fa-home text-3xl text-primary/20"></i>
+  </div>
+  <p class="text-gray-500 font-medium mb-1">No listings yet</p>
+  <p class="text-gray-400 text-sm mb-5">Add your first property to start attracting buyers.</p>
+  <a href="{% url 'dashboard:add_property' %}" class="btn-primary text-sm">
+    <i class="fas fa-plus mr-2"></i> Add Your First Property
+  </a>
+</div>
+{% endif %}
+
+<!-- Agent New Inquiries alert -->
+{% if inquiries_count > 0 %}
+<div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-5">
+  <div class="flex items-center gap-3">
+    <i class="fas fa-bell text-yellow-500 text-xl"></i>
+    <div>
+      <div class="font-semibold text-gray-700">{{ inquiries_count }} new inquiry message{% if inquiries_count > 1 %}s{% endif %}</div>
+      <div class="text-sm text-gray-500">Potential buyers are interested in your listings!</div>
+    </div>
+    <a href="{% url 'dashboard:my_inquiries' %}" class="ml-auto btn-primary text-sm py-2 px-4">View Now</a>
+  </div>
+</div>
+{% endif %}
+
+{% else %}
+<!-- ═══════════════════ BUYER / TENANT VIEW ═══════════════════ -->
+
+<!-- Buyer Stats -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+  <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+    <div class="flex items-center justify-between mb-3">
+      <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+        <i class="fas fa-heart text-red-400"></i>
+      </div>
+    </div>
+    <div class="text-2xl font-bold text-primary">{{ favorites_count }}</div>
+    <div class="text-sm text-gray-500 mt-1">Saved Properties</div>
+  </div>
+
+  <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+    <div class="flex items-center justify-between mb-3">
+      <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+        <i class="fas fa-bookmark text-blue-500"></i>
+      </div>
+    </div>
+    <div class="text-2xl font-bold text-primary">{{ saved_searches_count }}</div>
+    <div class="text-sm text-gray-500 mt-1">Saved Searches</div>
+  </div>
+
+  <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+    <div class="flex items-center justify-between mb-3">
+      <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+        <i class="fas fa-calendar-check text-green-500"></i>
+      </div>
+    </div>
+    <div class="text-2xl font-bold text-primary">{{ tours_count }}</div>
+    <div class="text-sm text-gray-500 mt-1">Tour Requests</div>
+  </div>
+
+  <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+    <div class="flex items-center justify-between mb-3">
+      <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
+        <i class="fas fa-clock text-orange-400"></i>
+      </div>
+      {% if pending_tours_count > 0 %}<span class="text-xs text-orange-500 font-semibold bg-orange-50 px-2 py-1 rounded-full">{{ pending_tours_count }} pending</span>{% endif %}
+    </div>
+    <div class="text-2xl font-bold text-primary">{{ pending_tours_count }}</div>
+    <div class="text-sm text-gray-500 mt-1">Awaiting Confirmation</div>
+  </div>
+</div>
+
+<!-- Buyer Quick Actions -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+  <div class="bg-gradient-to-br from-primary to-primary/80 rounded-2xl p-6 text-white">
+    <h3 class="font-bold text-lg mb-2">Find Your Dream Home</h3>
+    <p class="text-gray-300 text-sm mb-4">Browse thousands of properties across Tanzania.</p>
+    <a href="{% url 'properties:list' %}" class="inline-flex items-center gap-2 bg-accent hover:bg-yellow-600 text-white px-5 py-2 rounded-xl font-semibold text-sm transition-all">
+      <i class="fas fa-search"></i> Browse Properties
+    </a>
+  </div>
+  <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white">
+    <h3 class="font-bold text-lg mb-2">Connect with Agents</h3>
+    <p class="text-white/80 text-sm mb-4">Talk directly to verified agents and property owners.</p>
+    <a href="{% url 'agents:list' %}" class="inline-flex items-center gap-2 bg-white text-green-600 hover:bg-gray-100 px-5 py-2 rounded-xl font-semibold text-sm transition-all">
+      <i class="fas fa-user-tie"></i> Find Agents
+    </a>
+  </div>
+</div>
+
+<!-- Buyer Saved Properties -->
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+  <div class="flex justify-between items-center mb-5">
+    <h3 class="font-bold text-primary text-lg flex items-center gap-2">
+      <i class="fas fa-heart text-red-400"></i> Saved Properties
+    </h3>
+    <a href="{% url 'dashboard:my_favorites' %}" class="text-sm text-primary hover:text-accent font-medium">View All</a>
+  </div>
+  {% if my_favorites %}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for fav in my_favorites %}
+    {% with prop=fav.property img=fav.property.get_main_image %}
+    <a href="{{ prop.get_absolute_url }}" class="group block border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
+      {% if img %}
+      <img src="{{ img.image.url }}" class="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300" alt="{{ prop.title }}">
+      {% else %}
+      <div class="w-full h-32 bg-primary/5 flex items-center justify-center">
+        <i class="fas fa-home text-3xl text-primary/20"></i>
+      </div>
+      {% endif %}
+      <div class="p-3">
+        <div class="font-semibold text-primary text-sm line-clamp-1">{{ prop.title }}</div>
+        <div class="text-xs text-gray-400 mt-0.5"><i class="fas fa-map-marker-alt text-accent mr-1"></i>{{ prop.city }}</div>
+        <div class="text-sm font-bold text-accent mt-1">TZS {{ prop.price|intcomma }}</div>
+      </div>
+    </a>
+    {% endwith %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-10">
+    <div class="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+      <i class="fas fa-heart text-2xl text-red-200"></i>
+    </div>
+    <p class="text-gray-400 text-sm mb-4">No saved properties yet. Heart a property to save it here.</p>
+    <a href="{% url 'properties:list' %}" class="btn-primary text-sm">
+      <i class="fas fa-search mr-2"></i> Browse Properties
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Buyer My Tours -->
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+  <div class="flex justify-between items-center mb-5">
+    <h3 class="font-bold text-primary text-lg flex items-center gap-2">
+      <i class="fas fa-calendar-check text-accent"></i> My Tour Requests
+    </h3>
+    <a href="{% url 'dashboard:my_tours' %}" class="text-sm text-primary hover:text-accent font-medium">View All</a>
+  </div>
+  {% if my_tours %}
+  <div class="space-y-3">
+    {% for tour in my_tours %}
+    <div class="flex items-center gap-4 p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors">
+      {% with img=tour.property.get_main_image %}
+      {% if img %}
+      <img src="{{ img.image.url }}" class="w-14 h-12 rounded-lg object-cover flex-shrink-0" alt="">
+      {% else %}
+      <div class="w-14 h-12 bg-primary/5 rounded-lg flex items-center justify-center flex-shrink-0">
+        <i class="fas fa-home text-primary/20"></i>
+      </div>
+      {% endif %}
+      {% endwith %}
+      <div class="flex-1 min-w-0">
+        <div class="font-medium text-primary text-sm line-clamp-1">{{ tour.property.title }}</div>
+        <div class="text-xs text-gray-400 mt-0.5">
+          <i class="fas fa-calendar mr-1"></i>{{ tour.tour_date }} &nbsp; <i class="fas fa-clock mr-1"></i>{{ tour.tour_time|time:"H:i" }}
+        </div>
+      </div>
+      <span class="flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full
+        {% if tour.status == 'confirmed' %}bg-green-100 text-green-600
+        {% elif tour.status == 'cancelled' %}bg-red-100 text-red-500
+        {% else %}bg-orange-100 text-orange-500{% endif %}">
+        {{ tour.get_status_display }}
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-10">
+    <div class="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+      <i class="fas fa-calendar-check text-2xl text-green-200"></i>
+    </div>
+    <p class="text-gray-400 text-sm mb-4">No tour requests yet. Schedule a tour from any property page.</p>
+    <a href="{% url 'properties:list' %}" class="btn-primary text-sm">
+      <i class="fas fa-search mr-2"></i> Find a Property
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% if user.is_agent and top_listings %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+new Chart(document.getElementById('analyticsChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ chart_labels|safe }},
+    datasets: [
+      { label: 'Views',     data: {{ chart_views|safe }},    backgroundColor: 'rgba(29,53,87,0.8)',   borderRadius: 6 },
+      { label: 'Inquiries', data: {{ chart_inquiries|safe }}, backgroundColor: 'rgba(245,158,11,0.8)', borderRadius: 6 }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'top' } },
+    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+  }
+});
+</script>
+{% endblock %}
+{% endif %}

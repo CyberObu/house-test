@@ -1,0 +1,162 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load humanize %}
+{% block title %}Payments & Plans - NyumbaHub{% endblock %}
+{% block breadcrumb %}<i class="fas fa-chevron-right text-xs mx-1"></i><span class="text-primary font-semibold">Payments</span>{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-primary">Subscription Plans</h1>
+  <p class="text-gray-500 mt-1">Choose a plan to start listing properties</p>
+</div>
+
+<!-- Plans -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+  {% for plan_key, plan_label, price, features in plans %}
+  <div class="bg-white rounded-2xl border-2 {% if plan_key == 'standard' %}border-accent shadow-xl scale-105{% else %}border-gray-100 shadow-sm{% endif %} p-6 text-center relative">
+    {% if plan_key == 'standard' %}<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-white text-xs font-bold px-4 py-1 rounded-full">POPULAR</div>{% endif %}
+    <div class="w-14 h-14 {% if plan_key == 'standard' %}bg-accent{% else %}bg-primary/10{% endif %} rounded-2xl flex items-center justify-center mx-auto mb-4">
+      <i class="fas {% if plan_key == 'basic' %}fa-star{% elif plan_key == 'standard' %}fa-crown{% else %}fa-gem{% endif %} text-2xl {% if plan_key == 'standard' %}text-white{% else %}text-primary{% endif %}"></i>
+    </div>
+    <h3 class="text-xl font-bold text-primary mb-1">{{ plan_label }}</h3>
+    <div class="text-3xl font-extrabold {% if plan_key == 'standard' %}text-accent{% else %}text-primary{% endif %} my-3">TZS {{ price|intcomma }}<span class="text-base font-normal text-gray-400">/mo</span></div>
+    <ul class="text-sm text-gray-500 space-y-2 mb-6 text-left">
+      {% for feat in features %}
+      <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-500"></i>{{ feat }}</li>
+      {% endfor %}
+    </ul>
+    <button onclick="selectPlan('{{ plan_key }}')" class="w-full {% if plan_key == 'standard' %}btn-primary{% else %}btn-outline{% endif %} py-3 font-bold">
+      Choose {{ plan_label }}
+    </button>
+  </div>
+  {% empty %}
+  <!-- Static plans if no context -->
+  <div class="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-6 text-center">
+    <div class="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4"><i class="fas fa-star text-2xl text-primary"></i></div>
+    <h3 class="text-xl font-bold text-primary mb-1">Basic</h3>
+    <div class="text-3xl font-extrabold text-primary my-3">TZS 10,000<span class="text-base font-normal text-gray-400">/mo</span></div>
+    <ul class="text-sm text-gray-500 space-y-2 mb-6 text-left">
+      <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-500"></i>1 Property Listing</li>
+      <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-500"></i>Basic Support</li>
+      <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-500"></i>30 Days Active</li>
+    </ul>
+    <button onclick="selectPlan('basic')" class="w-full btn-outline py-3 font-bold">Choose Basic</button>
+  </div>
+  <div class="bg-white rounded-2xl border-2 border-accent shadow-xl scale-105 p-6 text-center relative">
+    <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-white text-xs font-bold px-4 py-1 rounded-full">POPULAR</div>
+    <div class="w-14 h-14 bg-accent rounded-2xl flex items-center justify-center mx-auto mb-4"><i class="fas fa-crown text-2xl text-white"></i></div>
+    <h3 class="text-xl font-bold text-primary mb-1">Standard</h3>
+    <div class="text-3xl font-extrabold text-accent my-3">TZS 35,000<span class="text-base font-normal text-gray-400">/mo</span></div>
+    <ul class="text-sm text-gray-500 space-y-2 mb-6 text-left">
+      <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-500"></i>5 Property Listings</li>
+      <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-500"></i>Featured on Homepage</li>
+      <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-500"></i>Priority Support</li>
+      <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-500"></i>60 Days Active</li>
+    </ul>
+    <button onclick="selectPlan('standard')" class="w-full btn-primary py-3 font-bold">Choose Standard</button>
+  </div>
+  <div class="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-6 text-center">
+    <div class="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4"><i class="fas fa-gem text-2xl text-primary"></i></div>
+    <h3 class="text-xl font-bold text-primary mb-1">Premium</h3>
+    <div class="text-3xl font-extrabold text-primary my-3">TZS 80,000<span class="text-base font-normal text-gray-400">/mo</span></div>
+    <ul class="text-sm text-gray-500 space-y-2 mb-6 text-left">
+      <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-500"></i>Unlimited Listings</li>
+      <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-500"></i>Top Agent Badge</li>
+      <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-500"></i>24/7 Support</li>
+      <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-500"></i>Analytics Dashboard</li>
+    </ul>
+    <button onclick="selectPlan('premium')" class="w-full btn-outline py-3 font-bold">Choose Premium</button>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Payment Form -->
+<div id="payment-form-section" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6 hidden">
+  <h2 class="font-bold text-primary text-lg mb-5 flex items-center gap-2"><i class="fas fa-mobile-alt text-accent"></i> Mobile Money Payment</h2>
+  <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5 text-sm text-blue-700">
+    <i class="fas fa-info-circle mr-2"></i>
+    After submitting, send payment to <strong>+255 700 000 000</strong> via your selected mobile money. Your account will be activated within 1 hour after confirmation.
+  </div>
+  <form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+    {% csrf_token %}
+    <input type="hidden" name="plan" id="selected-plan" value="">
+    <div>
+      <label class="filter-label">Selected Plan</label>
+      <div id="plan-display" class="filter-input mt-1 bg-gray-50 font-semibold text-primary"></div>
+    </div>
+    <div>
+      <label class="filter-label">Amount (TZS)</label>
+      <div id="amount-display" class="filter-input mt-1 bg-gray-50 font-semibold text-accent text-lg"></div>
+    </div>
+    <div>
+      <label class="filter-label">Payment Method</label>
+      <select name="payment_method" class="filter-input mt-1" required>
+        <option value="">Select Method</option>
+        <option value="mpesa">M-Pesa (Vodacom)</option>
+        <option value="tigopesa">Tigo Pesa</option>
+        <option value="airtelmoney">Airtel Money</option>
+        <option value="halopesa">Halo Pesa</option>
+        <option value="bank">Bank Transfer</option>
+      </select>
+    </div>
+    <div>
+      <label class="filter-label">Your Phone Number</label>
+      <input type="tel" name="phone_number" class="filter-input mt-1" placeholder="+255 7XX XXX XXX" required>
+    </div>
+    <div class="md:col-span-2 flex gap-4">
+      <button type="submit" class="btn-primary px-10"><i class="fas fa-paper-plane mr-2"></i>Submit Payment Request</button>
+      <button type="button" onclick="document.getElementById('payment-form-section').classList.add('hidden')" class="btn-outline">Cancel</button>
+    </div>
+  </form>
+</div>
+
+<!-- Payment History -->
+{% if payments %}
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+  <div class="px-6 py-4 border-b border-gray-100">
+    <h3 class="font-bold text-primary">Payment History</h3>
+  </div>
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50 text-gray-500 text-xs uppercase"><tr>
+      <th class="px-5 py-3 text-left">Plan</th>
+      <th class="px-5 py-3 text-left">Amount</th>
+      <th class="px-5 py-3 text-left">Method</th>
+      <th class="px-5 py-3 text-left">Status</th>
+      <th class="px-5 py-3 text-left">Date</th>
+    </tr></thead>
+    <tbody class="divide-y divide-gray-50">
+      {% for p in payments %}
+      <tr>
+        <td class="px-5 py-3 font-medium text-primary">{{ p.get_plan_display }}</td>
+        <td class="px-5 py-3 font-semibold text-accent">TZS {{ p.amount|intcomma }}</td>
+        <td class="px-5 py-3 text-gray-500">{{ p.payment_method }}</td>
+        <td class="px-5 py-3">
+          {% if p.status == 'completed' %}<span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">Completed</span>
+          {% elif p.status == 'pending' %}<span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full font-medium">Pending</span>
+          {% else %}<span class="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full font-medium">Failed</span>{% endif %}
+        </td>
+        <td class="px-5 py-3 text-gray-400">{{ p.created_at|date:"M d, Y" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const planData = {
+  basic: { label: 'Basic Plan (1 Listing)', amount: '10,000' },
+  standard: { label: 'Standard Plan (5 Listings)', amount: '35,000' },
+  premium: { label: 'Premium Plan (Unlimited)', amount: '80,000' },
+};
+function selectPlan(plan) {
+  document.getElementById('selected-plan').value = plan;
+  document.getElementById('plan-display').textContent = planData[plan].label;
+  document.getElementById('amount-display').textContent = 'TZS ' + planData[plan].amount;
+  document.getElementById('payment-form-section').classList.remove('hidden');
+  document.getElementById('payment-form-section').scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+{% endblock %}

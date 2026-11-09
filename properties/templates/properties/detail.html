@@ -1,0 +1,740 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ property.title }} - NyumbaHub{% endblock %}
+{% block meta_desc %}{{ property.description|truncatechars:160 }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-10">
+
+  <!-- Breadcrumb -->
+  <nav class="text-sm text-gray-400 mb-6 flex items-center gap-2">
+    <a href="{% url 'core:home' %}" class="hover:text-primary">Home</a>
+    <i class="fas fa-chevron-right text-xs"></i>
+    <a href="{% url 'properties:list' %}" class="hover:text-primary">Properties</a>
+    <i class="fas fa-chevron-right text-xs"></i>
+    <span class="text-gray-600">{{ property.title|truncatechars:40 }}</span>
+  </nav>
+
+  <div class="flex flex-col xl:flex-row gap-10">
+
+    <!-- LEFT COLUMN -->
+    <div class="flex-1 min-w-0">
+
+      <!-- Title & Actions -->
+      <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+        <div>
+          <div class="flex gap-2 mb-2">
+            <span class="{{ property.status_badge_color }} text-white text-xs font-bold px-3 py-1 rounded-full uppercase">{{ property.get_status_display }}</span>
+            {% if property.label %}<span class="bg-accent text-white text-xs font-bold px-3 py-1 rounded-full uppercase">{{ property.get_label_display }}</span>{% endif %}
+          </div>
+          <h1 class="text-2xl md:text-3xl font-bold text-primary">{{ property.title }}</h1>
+          <p class="text-gray-500 mt-1"><i class="fas fa-map-marker-alt text-accent mr-1"></i>{{ property.address }}, {{ property.city }}{% if property.state %}, {{ property.state }}{% endif %}</p>
+        </div>
+        <div class="text-right">
+          <div class="text-3xl font-extrabold text-accent">TZS {{ property.price|intcomma }}</div>
+          {% if property.price_postfix %}<div class="text-gray-400 text-sm">/{{ property.price_postfix }}</div>{% endif %}
+        </div>
+      </div>
+
+      <!-- Gallery -->
+      {% with images=property.images.all %}
+      {% if images %}
+      <div class="mb-8 rounded-2xl overflow-hidden">
+        <div class="swiper gallery-swiper rounded-2xl">
+          <div class="swiper-wrapper">
+            {% for img in images %}
+            <div class="swiper-slide">
+              <img src="{{ img.image.url }}" alt="{{ img.caption|default:property.title }}" class="w-full h-80 md:h-96 object-cover cursor-pointer" onclick="openLightbox('{{ img.image.url }}')">
+            </div>
+            {% endfor %}
+          </div>
+          <div class="swiper-button-next"></div>
+          <div class="swiper-button-prev"></div>
+          <div class="swiper-pagination"></div>
+        </div>
+        {% if images.count > 1 %}
+        <div class="grid grid-cols-5 gap-2 mt-2">
+          {% for img in images|slice:":5" %}
+          <img src="{{ img.image.url }}" class="w-full h-16 object-cover rounded-lg cursor-pointer opacity-70 hover:opacity-100 transition-opacity" onclick="openLightbox('{{ img.image.url }}')">
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      {% else %}
+      <div class="w-full h-96 bg-primary/10 rounded-2xl flex items-center justify-center mb-8">
+        <i class="fas fa-home text-8xl text-primary/20"></i>
+      </div>
+      {% endif %}
+      {% endwith %}
+
+      <!-- Property Details -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-bold text-primary mb-5 flex items-center gap-2"><i class="fas fa-info-circle text-accent"></i> Property Details</h2>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-5">
+          {% if property.property_type %}
+          <div class="detail-item"><i class="fas fa-home text-primary"></i><div><span>Property Type</span><strong>{{ property.property_type.name }}</strong></div></div>
+          {% endif %}
+          {% if property.bedrooms %}
+          <div class="detail-item"><i class="fas fa-bed text-primary"></i><div><span>Bedrooms</span><strong>{{ property.bedrooms }}</strong></div></div>
+          {% endif %}
+          {% if property.bathrooms %}
+          <div class="detail-item"><i class="fas fa-bath text-primary"></i><div><span>Bathrooms</span><strong>{{ property.bathrooms }}</strong></div></div>
+          {% endif %}
+          {% if property.garages %}
+          <div class="detail-item"><i class="fas fa-car text-primary"></i><div><span>Garages</span><strong>{{ property.garages }}</strong></div></div>
+          {% endif %}
+          {% if property.area %}
+          <div class="detail-item"><i class="fas fa-ruler-combined text-primary"></i><div><span>Area</span><strong>{{ property.area|floatformat:0 }} ft²</strong></div></div>
+          {% endif %}
+          {% if property.year_built %}
+          <div class="detail-item"><i class="fas fa-calendar text-primary"></i><div><span>Year Built</span><strong>{{ property.year_built }}</strong></div></div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-bold text-primary mb-4 flex items-center gap-2"><i class="fas fa-align-left text-accent"></i> Description</h2>
+        <div class="text-gray-600 leading-relaxed whitespace-pre-line">{{ property.description }}</div>
+      </div>
+
+      <!-- Amenities -->
+      {% if property.amenities.all %}
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-bold text-primary mb-5 flex items-center gap-2"><i class="fas fa-list-check text-accent"></i> Amenities & Features</h2>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {% for amenity in property.amenities.all %}
+          <div class="flex items-center gap-2 text-gray-600 text-sm">
+            <i class="{{ amenity.icon }} text-green-500"></i>
+            <span>{{ amenity.name }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Video Tour -->
+      {% if video_embed %}
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-bold text-primary mb-4 flex items-center gap-2"><i class="fas fa-play-circle text-accent"></i> Video Tour</h2>
+        <div class="rounded-xl overflow-hidden aspect-video">
+          <iframe src="{{ video_embed }}" class="w-full h-full border-0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- 3D Images -->
+      {% if images_3d %}
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-bold text-primary mb-4 flex items-center gap-2">
+          <i class="fas fa-cube text-accent"></i> 3D Images
+        </h2>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {% for img in images_3d %}
+          <div class="relative rounded-xl overflow-hidden cursor-pointer group" onclick="openLightbox('{{ img.image.url }}')">
+            <img src="{{ img.image.url }}" class="w-full h-40 object-cover">
+            <div class="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <i class="fas fa-expand text-white text-xl"></i>
+            </div>
+            <span class="absolute top-2 left-2 text-white text-xs px-2 py-0.5 rounded-md font-semibold" style="background-color:#1D3557">3D</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Virtual Tour -->
+      {% if property.virtual_tour_url %}
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-bold text-primary mb-4 flex items-center gap-2">
+          <i class="fas fa-vr-cardboard text-accent"></i> Virtual Tour
+        </h2>
+        <div class="rounded-xl overflow-hidden" style="height:480px">
+          <iframe src="{{ property.virtual_tour_url }}" class="w-full h-full border-0"
+                  allowfullscreen allow="xr-spatial-tracking" loading="lazy"></iframe>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Floor Plans -->
+      {% if property.floor_plans.all %}
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-bold text-primary mb-5 flex items-center gap-2"><i class="fas fa-drafting-compass text-accent"></i> Floor Plans</h2>
+        <div class="space-y-4">
+          {% for plan in property.floor_plans.all %}
+          <div class="border border-gray-100 rounded-xl overflow-hidden">
+            <button class="w-full text-left px-5 py-4 font-semibold text-primary flex justify-between items-center hover:bg-gray-50 transition" onclick="togglePlan(this)">
+              <span>{{ plan.name }}</span>
+              <div class="flex items-center gap-4 text-sm text-gray-500 font-normal">
+                {% if plan.area %}<span><i class="fas fa-ruler-combined mr-1"></i>{{ plan.area }} ft²</span>{% endif %}
+                {% if plan.bedrooms %}<span><i class="fas fa-bed mr-1"></i>{{ plan.bedrooms }} bed</span>{% endif %}
+                <i class="fas fa-chevron-down transition-transform"></i>
+              </div>
+            </button>
+            <div class="hidden px-5 pb-5">
+              {% if plan.description %}<p class="text-gray-500 text-sm mb-3">{{ plan.description }}</p>{% endif %}
+              {% if plan.image %}<img src="{{ plan.image.url }}" class="rounded-xl w-full" alt="{{ plan.name }}">{% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Map -->
+      {% if property.latitude and property.longitude %}
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-bold text-primary mb-4 flex items-center gap-2"><i class="fas fa-map-marker-alt text-accent"></i> Location</h2>
+        <div class="rounded-xl overflow-hidden h-72 bg-gray-100">
+          <iframe
+            src="https://www.openstreetmap.org/export/embed.html?bbox={{ property.longitude|add:'-0.005' }},{{ property.latitude|add:'-0.005' }},{{ property.longitude|add:'0.005' }},{{ property.latitude|add:'0.005' }}&layer=mapnik&marker={{ property.latitude }},{{ property.longitude }}"
+            class="w-full h-full border-0" allowfullscreen loading="lazy">
+          </iframe>
+        </div>
+        <p class="text-sm text-gray-500 mt-3"><i class="fas fa-map-marker-alt text-accent mr-1"></i>{{ property.address }}, {{ property.city }}</p>
+      </div>
+      {% endif %}
+
+      <!-- Open House -->
+      {% if property.open_houses.all %}
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-bold text-primary mb-4 flex items-center gap-2"><i class="fas fa-door-open text-accent"></i> Open House</h2>
+        <div class="space-y-3">
+          {% for oh in property.open_houses.all %}
+          <div class="flex items-center gap-4 bg-accent/5 rounded-xl p-4">
+            <div class="w-14 h-14 bg-accent text-white rounded-xl flex flex-col items-center justify-center text-center flex-shrink-0">
+              <span class="text-xs font-semibold">{{ oh.date|date:"M" }}</span>
+              <span class="text-xl font-bold leading-none">{{ oh.date|date:"d" }}</span>
+            </div>
+            <div>
+              <div class="font-semibold text-primary">{{ oh.date|date:"l, F j, Y" }}</div>
+              <div class="text-gray-500 text-sm"><i class="fas fa-clock mr-1 text-accent"></i>{{ oh.start_time|time:"H:i" }} – {{ oh.end_time|time:"H:i" }}</div>
+              {% if oh.notes %}<div class="text-gray-400 text-xs mt-1">{{ oh.notes }}</div>{% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Property Documents -->
+      {% if property.documents.all %}
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-bold text-primary mb-4 flex items-center gap-2"><i class="fas fa-file-pdf text-accent"></i> Documents</h2>
+        <div class="space-y-2">
+          {% for doc in property.documents.all %}
+          <a href="{{ doc.file.url }}" target="_blank" class="flex items-center gap-3 p-3 border border-gray-100 rounded-xl hover:border-primary/30 hover:bg-primary/5 transition-colors group">
+            <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-file-pdf text-red-500"></i>
+            </div>
+            <span class="font-medium text-primary group-hover:text-accent transition-colors">{{ doc.title }}</span>
+            <i class="fas fa-download ml-auto text-gray-300 group-hover:text-accent transition-colors"></i>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Agent-curated Nearby Places -->
+      {% with nearby=property.nearby_places.all %}
+      {% if nearby %}
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-bold text-primary mb-4 flex items-center gap-2">
+          <i class="fas fa-map-pin text-accent"></i> Nearby Highlights
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {% for place in nearby %}
+          <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style="background-color:#1D3557">
+              <i class="{{ place.get_icon }} text-white text-sm"></i>
+            </div>
+            <div class="min-w-0">
+              <div class="font-semibold text-gray-800 text-sm truncate">{{ place.name }}</div>
+              <div class="text-xs text-gray-400">{{ place.get_place_type_display }}{% if place.distance %} &bull; {{ place.distance }}{% endif %}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+      {% endwith %}
+
+      <!-- Nearby Places (map-based) -->
+      {% if property.latitude and property.longitude %}
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-bold text-primary mb-4 flex items-center gap-2"><i class="fas fa-map-pin text-accent"></i> Nearby Places</h2>
+        <div class="flex gap-2 mb-4 flex-wrap" id="nearby-tabs">
+          <button onclick="loadNearby('school','Education')" class="nearby-tab active" data-type="school">🏫 Schools</button>
+          <button onclick="loadNearby('hospital','Healthcare')" class="nearby-tab" data-type="hospital">🏥 Healthcare</button>
+          <button onclick="loadNearby('restaurant','Restaurants')" class="nearby-tab" data-type="restaurant">🍽 Restaurants</button>
+          <button onclick="loadNearby('bank','Banks')" class="nearby-tab" data-type="bank">🏦 Banks</button>
+          <button onclick="loadNearby('supermarket','Shopping')" class="nearby-tab" data-type="supermarket">🛒 Shopping</button>
+        </div>
+        <div id="nearby-list" class="space-y-2 min-h-24">
+          <div class="text-center py-6 text-gray-400 text-sm" id="nearby-loading">
+            <i class="fas fa-spinner fa-spin mr-2"></i>Loading nearby places...
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Reviews -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-bold text-primary mb-5 flex items-center gap-2"><i class="fas fa-star text-accent"></i> Reviews ({{ property.reviews.count }})</h2>
+        {% for review in property.reviews.all %}
+        <div class="border-b border-gray-100 pb-4 mb-4 last:border-0">
+          <div class="flex items-center gap-3 mb-2">
+            <img src="{{ review.reviewer.get_avatar_url }}" class="w-10 h-10 rounded-full object-cover" alt="">
+            <div>
+              <div class="font-semibold text-primary">{{ review.reviewer.get_full_name }}</div>
+              <div class="flex text-accent text-xs">
+                {% for i in "12345" %}
+                <i class="fas fa-star {% if forloop.counter <= review.rating %}text-accent{% else %}text-gray-200{% endif %}"></i>
+                {% endfor %}
+              </div>
+            </div>
+            <span class="ml-auto text-xs text-gray-400">{{ review.created_at|date:"M d, Y" }}</span>
+          </div>
+          <p class="text-gray-600 text-sm">{{ review.comment }}</p>
+        </div>
+        {% empty %}
+        <p class="text-gray-400">No reviews yet.</p>
+        {% endfor %}
+
+        {% if user.is_authenticated %}
+        <div class="mt-6 pt-6 border-t border-gray-100">
+          <h3 class="font-bold text-primary mb-4">Write a Review</h3>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="review_submit" value="1">
+            <div class="mb-4">
+              <label class="filter-label">Rating</label>
+              <div class="flex gap-3 mt-2">
+                {% for i in "12345" %}
+                <label class="flex items-center gap-1 cursor-pointer">
+                  <input type="radio" name="rating" value="{{ forloop.counter }}" class="hidden peer" required>
+                  <span class="text-2xl peer-checked:text-accent text-gray-300 hover:text-accent transition-colors">★</span>
+                  <span class="text-sm text-gray-500">{{ forloop.counter }}</span>
+                </label>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="mb-4">
+              <label class="filter-label">Comment</label>
+              <textarea name="comment" rows="3" class="filter-input mt-1" placeholder="Share your experience..." required></textarea>
+            </div>
+            <button type="submit" class="btn-primary">Submit Review</button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- RIGHT SIDEBAR -->
+    <div class="w-full xl:w-80 flex-shrink-0 space-y-6">
+
+      <!-- Agent Card -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <div class="text-center">
+          <img src="{{ property.owner.get_avatar_url }}" class="w-20 h-20 rounded-full object-cover border-4 border-primary/20 mx-auto mb-3" alt="">
+          <h3 class="font-bold text-primary text-lg">{{ property.owner.get_full_name }}</h3>
+          <p class="text-gray-400 text-sm mb-1">{% if property.owner.is_agent %}Licensed Agent{% else %}Property Owner{% endif %}</p>
+          {% if property.owner.phone %}
+          <p class="text-sm text-gray-500"><i class="fas fa-phone text-accent mr-1"></i>{{ property.owner.phone }}</p>
+          {% endif %}
+        </div>
+        <div class="flex gap-2 mt-4">
+          {% if property.owner.phone %}
+          <a href="tel:{{ property.owner.phone }}" class="flex-1 btn-primary text-center text-sm py-2">
+            <i class="fas fa-phone mr-1"></i> Call
+          </a>
+          {% endif %}
+          {% if property.owner.whatsapp %}
+          <a href="https://wa.me/{{ property.owner.whatsapp }}" target="_blank" class="flex-1 bg-green-500 hover:bg-green-600 text-white text-center text-sm py-2 rounded-xl font-semibold transition-colors">
+            <i class="fab fa-whatsapp mr-1"></i> WhatsApp
+          </a>
+          {% endif %}
+        </div>
+        {% if user.is_authenticated and property.owner != user %}
+        <a href="{% url 'messaging:start_conversation_property' property.owner.pk property.pk %}"
+           class="mt-3 flex items-center justify-center gap-2 w-full border-2 border-primary text-primary hover:bg-primary hover:text-white py-2 rounded-xl text-sm font-semibold transition-all">
+          <i class="fas fa-comments"></i> Send Message
+        </a>
+        {% endif %}
+        {% if property.owner.is_agent %}
+        <a href="{% url 'agents:detail' property.owner.pk %}" class="block text-center mt-3 text-primary text-sm hover:text-accent font-medium">
+          View Profile →
+        </a>
+        {% endif %}
+      </div>
+
+      <!-- Inquiry Form -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <h3 class="font-bold text-primary text-lg mb-4 flex items-center gap-2">
+          <i class="fas fa-envelope text-accent"></i> Send Inquiry
+        </h3>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="inquiry_submit" value="1">
+          <div class="space-y-3">
+            <div>
+              <label class="filter-label mb-1">Your Name *</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none"><i class="fas fa-user text-sm"></i></span>
+                <input type="text" name="name" class="filter-input pl-9" placeholder="John Doe" value="{{ inquiry_form.name.value|default:'' }}" required>
+              </div>
+            </div>
+            <div>
+              <label class="filter-label mb-1">Email Address *</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none"><i class="fas fa-envelope text-sm"></i></span>
+                <input type="email" name="email" class="filter-input pl-9" placeholder="your@email.com" value="{{ inquiry_form.email.value|default:'' }}" required>
+              </div>
+            </div>
+            <div>
+              <label class="filter-label mb-1">Phone <span class="normal-case font-normal text-gray-400">(optional)</span></label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none"><i class="fas fa-phone text-sm"></i></span>
+                <input type="tel" name="phone" class="filter-input pl-9" placeholder="+255 7XX XXX XXX" value="{{ inquiry_form.phone.value|default:'' }}">
+              </div>
+            </div>
+            <div>
+              <label class="filter-label mb-1">Message *</label>
+              <textarea name="message" class="filter-input" rows="4" placeholder="I am interested in this property...">{{ inquiry_form.message.value|default:"Hello, I am interested in this property. Please contact me." }}</textarea>
+            </div>
+            <button type="submit" class="w-full btn-primary justify-center py-3">
+              <i class="fas fa-paper-plane mr-2"></i> Send Inquiry
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Schedule a Tour -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <h3 class="font-bold text-primary text-lg mb-4 flex items-center gap-2">
+          <i class="fas fa-calendar-alt text-accent"></i> Schedule a Tour
+        </h3>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="tour_submit" value="1">
+          <div class="space-y-3">
+            <div>
+              <label class="filter-label mb-1">Your Name *</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none"><i class="fas fa-user text-sm"></i></span>
+                <input type="text" name="name" class="filter-input pl-9" placeholder="John Doe" value="{{ tour_form.name.value|default:'' }}" required>
+              </div>
+            </div>
+            <div>
+              <label class="filter-label mb-1">Email Address *</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none"><i class="fas fa-envelope text-sm"></i></span>
+                <input type="email" name="email" class="filter-input pl-9" placeholder="your@email.com" value="{{ tour_form.email.value|default:'' }}" required>
+              </div>
+            </div>
+            <div>
+              <label class="filter-label mb-1">Phone <span class="normal-case font-normal text-gray-400">(optional)</span></label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none"><i class="fas fa-phone text-sm"></i></span>
+                <input type="tel" name="phone" class="filter-input pl-9" placeholder="+255 7XX XXX XXX" value="{{ tour_form.phone.value|default:'' }}">
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="filter-label mb-1">Tour Date *</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none"><i class="fas fa-calendar text-sm"></i></span>
+                  <input type="date" name="tour_date" class="filter-input pl-9" required>
+                </div>
+              </div>
+              <div>
+                <label class="filter-label mb-1">Time *</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none"><i class="fas fa-clock text-sm"></i></span>
+                  <input type="time" name="tour_time" class="filter-input pl-9" required>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label class="filter-label mb-1">Special Requests <span class="normal-case font-normal text-gray-400">(optional)</span></label>
+              <textarea name="message" class="filter-input" rows="2" placeholder="Any questions or special requests..."></textarea>
+            </div>
+            <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2">
+              <i class="fas fa-calendar-check"></i> Request Tour
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Mortgage Calculator -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <h3 class="font-bold text-primary text-lg mb-4 flex items-center gap-2">
+          <i class="fas fa-calculator text-accent"></i> Mortgage Calculator
+        </h3>
+        <div class="space-y-3">
+          <div>
+            <label class="filter-label">Property Price (TZS)</label>
+            <input type="number" id="calc-price" class="filter-input mt-1" value="{{ property.price }}" oninput="calcMortgage()">
+          </div>
+          <div>
+            <label class="filter-label">Down Payment (%)</label>
+            <input type="number" id="calc-down" class="filter-input mt-1" value="20" min="0" max="100" oninput="calcMortgage()">
+          </div>
+          <div>
+            <label class="filter-label">Loan Term (Years)</label>
+            <input type="number" id="calc-years" class="filter-input mt-1" value="20" min="1" max="30" oninput="calcMortgage()">
+          </div>
+          <div>
+            <label class="filter-label">Interest Rate (%)</label>
+            <input type="number" id="calc-rate" class="filter-input mt-1" value="12" step="0.1" oninput="calcMortgage()">
+          </div>
+          <div class="bg-primary/5 rounded-xl p-4 text-center">
+            <p class="text-xs text-gray-500 mb-1">Monthly Payment</p>
+            <p id="monthly-payment" class="text-2xl font-bold text-primary">TZS 0</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Property Actions -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <div class="flex flex-col gap-3">
+          {% if user.is_authenticated %}
+          <a href="{% url 'properties:favorite' property.slug %}" class="flex items-center justify-center gap-2 border-2 border-primary text-primary hover:bg-primary hover:text-white px-4 py-3 rounded-xl font-semibold transition-all">
+            <i class="fas fa-heart {% if is_favorited %}text-red-500{% endif %}"></i>
+            {% if is_favorited %}Saved{% else %}Save Property{% endif %}
+          </a>
+          {% endif %}
+          {% if in_compare %}
+          <a href="{% url 'properties:compare_remove' property.slug %}" class="flex items-center justify-center gap-2 border-2 border-accent text-accent hover:bg-accent hover:text-white px-4 py-3 rounded-xl font-semibold transition-all">
+            <i class="fas fa-balance-scale"></i> In Compare (Remove)
+          </a>
+          {% else %}
+          <a href="{% url 'properties:compare_add' property.slug %}" class="flex items-center justify-center gap-2 border-2 border-gray-200 text-gray-600 hover:border-accent hover:text-accent px-4 py-3 rounded-xl font-semibold transition-all">
+            <i class="fas fa-balance-scale"></i> Add to Compare
+          </a>
+          {% endif %}
+          {% if compare_list %}
+          <a href="{% url 'properties:compare' %}" class="text-center text-xs text-accent font-semibold hover:underline">
+            View Compare ({{ compare_list|length }})
+          </a>
+          {% endif %}
+          <button onclick="window.print()" class="flex items-center justify-center gap-2 border-2 border-gray-200 text-gray-600 hover:border-primary hover:text-primary px-4 py-3 rounded-xl font-semibold transition-all">
+            <i class="fas fa-print"></i> Print
+          </button>
+        </div>
+        <p class="text-xs text-gray-400 text-center mt-3"><i class="fas fa-eye mr-1"></i>{{ property.views_count }} views</p>
+      </div>
+
+      <!-- Social Share -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <h3 class="font-bold text-primary text-sm mb-3 flex items-center gap-2">
+          <i class="fas fa-share-alt text-accent"></i> Share This Property
+        </h3>
+        <div class="grid grid-cols-2 gap-2">
+          <a href="https://wa.me/?text={{ property.title|urlencode }}%20{{ request.build_absolute_uri }}" target="_blank"
+             class="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors">
+            <i class="fab fa-whatsapp"></i> WhatsApp
+          </a>
+          <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank"
+             class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors">
+            <i class="fab fa-facebook-f"></i> Facebook
+          </a>
+          <a href="https://twitter.com/intent/tweet?text={{ property.title|urlencode }}&url={{ request.build_absolute_uri }}" target="_blank"
+             class="flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-600 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors">
+            <i class="fab fa-twitter"></i> Twitter
+          </a>
+          <button onclick="copyLink()" class="flex items-center justify-center gap-2 border-2 border-gray-200 text-gray-600 hover:border-primary hover:text-primary py-2.5 rounded-xl text-sm font-semibold transition-all">
+            <i class="fas fa-link"></i> Copy Link
+          </button>
+        </div>
+      </div>
+
+      <!-- QR Code -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <h3 class="font-bold text-primary text-sm mb-3 flex items-center gap-2">
+          <i class="fas fa-qrcode text-accent"></i> QR Code
+        </h3>
+        <div class="flex flex-col items-center gap-3">
+          <div id="qrcode" class="border border-gray-100 rounded-xl p-2"></div>
+          <p class="text-xs text-gray-400 text-center">Scan to view on mobile</p>
+        </div>
+      </div>
+
+      <!-- Report Listing -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <button onclick="document.getElementById('report-form').classList.toggle('hidden')" class="flex items-center gap-2 text-gray-400 hover:text-red-500 text-sm font-semibold transition-colors w-full">
+          <i class="fas fa-flag"></i> Report This Listing
+          <i class="fas fa-chevron-down ml-auto text-xs"></i>
+        </button>
+        <div id="report-form" class="hidden mt-4 pt-4 border-t border-gray-100">
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="report_submit" value="1">
+            <div class="space-y-3">
+              <div>
+                <label class="filter-label mb-1">Your Name *</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none"><i class="fas fa-user text-sm"></i></span>
+                  <input type="text" name="name" class="filter-input pl-9" placeholder="John Doe" value="{{ report_form.name.value|default:'' }}" required>
+                </div>
+              </div>
+              <div>
+                <label class="filter-label mb-1">Email Address *</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none"><i class="fas fa-envelope text-sm"></i></span>
+                  <input type="email" name="email" class="filter-input pl-9" placeholder="your@email.com" value="{{ report_form.email.value|default:'' }}" required>
+                </div>
+              </div>
+              <div>
+                <label class="filter-label mb-1">Reason *</label>
+                <select name="reason" class="filter-input" required>
+                  <option value="">Select a reason…</option>
+                  {% for val, lbl in report_form.fields.reason.choices %}
+                  {% if val %}<option value="{{ val }}">{{ lbl }}</option>{% endif %}
+                  {% endfor %}
+                </select>
+              </div>
+              <div>
+                <label class="filter-label mb-1">Additional Details <span class="normal-case font-normal text-gray-400">(optional)</span></label>
+                <textarea name="description" class="filter-input" rows="2" placeholder="Describe the issue…"></textarea>
+              </div>
+              <button type="submit" class="w-full border-2 border-red-400 text-red-500 hover:bg-red-500 hover:text-white py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2">
+                <i class="fas fa-flag"></i> Submit Report
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Similar Properties -->
+  {% if similar %}
+  <div class="mt-14">
+    <h2 class="text-2xl font-bold text-primary mb-6">Similar Properties</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-7">
+      {% for prop in similar %}{% include 'properties/_card.html' %}{% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4" onclick="closeLightbox()">
+  <img id="lightbox-img" src="" class="max-w-full max-h-full object-contain rounded-xl">
+  <button class="absolute top-4 right-4 text-white text-3xl" onclick="closeLightbox()">&times;</button>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .nearby-tab { padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; border: 2px solid #e5e7eb; color: #6b7280; background: #fff; cursor: pointer; transition: all 0.2s; }
+  .nearby-tab.active, .nearby-tab:hover { border-color: #1D3557; background: #1D3557; color: #fff; }
+  @media print {
+    .xl\:w-80, nav#navbar, footer, #lightbox, .swiper-button-next, .swiper-button-prev { display: none !important; }
+    .flex-col.xl\:flex-row { flex-direction: column !important; }
+    body { background: #fff; }
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+new Swiper('.gallery-swiper', {
+  navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+  pagination: { el: '.swiper-pagination', clickable: true },
+  loop: true,
+});
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.remove('hidden');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.add('hidden');
+}
+function togglePlan(btn) {
+  const content = btn.nextElementSibling;
+  content.classList.toggle('hidden');
+  btn.querySelector('.fa-chevron-down').style.transform = content.classList.contains('hidden') ? '' : 'rotate(180deg)';
+}
+function calcMortgage() {
+  const price = parseFloat(document.getElementById('calc-price').value) || 0;
+  const down = parseFloat(document.getElementById('calc-down').value) || 0;
+  const years = parseFloat(document.getElementById('calc-years').value) || 20;
+  const rate = parseFloat(document.getElementById('calc-rate').value) || 12;
+  const principal = price * (1 - down / 100);
+  const monthlyRate = rate / 100 / 12;
+  const n = years * 12;
+  let monthly = 0;
+  if (monthlyRate > 0) {
+    monthly = principal * (monthlyRate * Math.pow(1 + monthlyRate, n)) / (Math.pow(1 + monthlyRate, n) - 1);
+  } else {
+    monthly = principal / n;
+  }
+  document.getElementById('monthly-payment').textContent = 'TZS ' + Math.round(monthly).toLocaleString();
+}
+function copyLink() {
+  navigator.clipboard.writeText(window.location.href).then(() => {
+    const btn = document.querySelector('[onclick="copyLink()"]');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check text-green-500"></i> Copied!';
+    setTimeout(() => { btn.innerHTML = orig; }, 2000);
+  });
+}
+calcMortgage();
+
+// QR Code
+new QRCode(document.getElementById('qrcode'), {
+  text: window.location.href,
+  width: 120,
+  height: 120,
+  colorDark: '#1D3557',
+  colorLight: '#ffffff',
+  correctLevel: QRCode.CorrectLevel.M
+});
+
+// Nearby Places via Overpass API (OpenStreetMap, free, no key)
+const LAT = {{ property.latitude|default:"null" }};
+const LNG = {{ property.longitude|default:"null" }};
+
+function loadNearby(type, label) {
+  document.querySelectorAll('.nearby-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  const list = document.getElementById('nearby-list');
+  list.innerHTML = '<div class="text-center py-6 text-gray-400 text-sm"><i class="fas fa-spinner fa-spin mr-2"></i>Loading...</div>';
+  if (!LAT || !LNG) return;
+  const radius = 2000;
+  const query = `[out:json][timeout:10];(node["amenity"="${type}"](around:${radius},${LAT},${LNG});way["amenity"="${type}"](around:${radius},${LAT},${LNG}););out center 10;`;
+  fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`)
+    .then(r => r.json())
+    .then(data => {
+      if (!data.elements.length) {
+        list.innerHTML = '<p class="text-gray-400 text-sm text-center py-4">No nearby ' + label.toLowerCase() + ' found within 2km.</p>';
+        return;
+      }
+      list.innerHTML = data.elements.slice(0,8).map(el => {
+        const name = el.tags.name || label;
+        const lat = el.lat || el.center?.lat;
+        const lng = el.lon || el.center?.lon;
+        const dist = lat && lng ? Math.round(Math.sqrt(Math.pow((lat-LAT)*111000,2)+Math.pow((lng-LNG)*111000*Math.cos(LAT*Math.PI/180),2))) : '';
+        return `<div class="flex items-center gap-3 p-3 border border-gray-100 rounded-xl hover:bg-primary/5 transition-colors">
+          <div class="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 text-primary font-bold text-sm">${name.charAt(0).toUpperCase()}</div>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium text-primary text-sm truncate">${name}</div>
+            ${dist ? `<div class="text-gray-400 text-xs">${dist}m away</div>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+    })
+    .catch(() => { list.innerHTML = '<p class="text-red-400 text-sm text-center py-4">Could not load nearby places.</p>'; });
+}
+
+if (LAT && LNG) loadNearby('school', 'Schools');
+</script>
+{% endblock %}

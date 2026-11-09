@@ -1,0 +1,123 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}My Agents - NyumbaHub{% endblock %}
+{% block breadcrumb %}<i class="fas fa-chevron-right text-xs mx-1"></i><span class="font-semibold" style="color:#1D3557">My Agents</span>{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold" style="color:#1D3557">Agents I've Contacted</h1>
+  <p class="text-gray-500 mt-1">Agents whose properties you have inquired about or requested tours for.</p>
+</div>
+
+{% if agents %}
+<div class="space-y-4">
+  {% for entry in agents %}
+  {% with agent=entry.agent %}
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+    <div class="flex flex-col sm:flex-row sm:items-start gap-4">
+
+      <!-- Avatar -->
+      <div class="flex-shrink-0">
+        <img src="{{ agent.get_avatar_url }}" class="w-14 h-14 rounded-2xl object-cover border border-gray-100">
+      </div>
+
+      <!-- Agent info -->
+      <div class="flex-1 min-w-0">
+        <div class="flex flex-wrap items-center gap-2 mb-1">
+          <h3 class="font-bold text-gray-800 text-base">{{ agent.get_full_name|default:agent.email }}</h3>
+          {% if agent.is_verified %}
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold rounded-full bg-green-50 text-green-700">
+            <i class="fas fa-check-circle"></i> Verified Agent
+          </span>
+          {% else %}
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold rounded-full bg-yellow-50 text-yellow-700">
+            <i class="fas fa-exclamation-circle"></i> Unverified
+          </span>
+          {% endif %}
+        </div>
+
+        <div class="flex flex-wrap gap-4 text-sm text-gray-500 mb-3">
+          <span><i class="fas fa-envelope mr-1.5 text-gray-300"></i>{{ agent.email }}</span>
+          {% if agent.phone %}<span><i class="fas fa-phone mr-1.5 text-gray-300"></i>{{ agent.phone }}</span>{% endif %}
+          {% if agent.city %}<span><i class="fas fa-map-marker-alt mr-1.5 text-gray-300"></i>{{ agent.city }}</span>{% endif %}
+          <span class="text-xs text-gray-400">Last contact: {{ entry.last_contact|date:"M j, Y" }}</span>
+        </div>
+
+        <!-- Activity pills with hover details -->
+        <div class="flex flex-wrap gap-2">
+          {% if entry.inquiries %}
+          <div class="group relative">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-700 cursor-pointer">
+              <i class="fas fa-envelope"></i>
+              {{ entry.inquiries|length }} Inquir{{ entry.inquiries|length|pluralize:"y,ies" }} sent
+            </span>
+            <div class="absolute left-0 top-full mt-1 w-80 bg-white rounded-xl shadow-xl border border-gray-100 p-3 z-20 hidden group-hover:block text-xs">
+              {% for inq in entry.inquiries %}
+              <div class="py-1.5 border-b border-gray-50 last:border-0">
+                <div class="font-semibold text-gray-700 truncate">{{ inq.property.title }}</div>
+                <div class="text-gray-400 mt-0.5">{{ inq.created_at|date:"M j, Y" }} &mdash; {{ inq.message|truncatechars:70 }}</div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          {% if entry.tours %}
+          <div class="group relative">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-green-50 text-green-700 cursor-pointer">
+              <i class="fas fa-calendar-check"></i>
+              {{ entry.tours|length }} Tour Request{{ entry.tours|length|pluralize }}
+            </span>
+            <div class="absolute left-0 top-full mt-1 w-80 bg-white rounded-xl shadow-xl border border-gray-100 p-3 z-20 hidden group-hover:block text-xs">
+              {% for tour in entry.tours %}
+              <div class="py-1.5 border-b border-gray-50 last:border-0">
+                <div class="font-semibold text-gray-700 truncate">{{ tour.property.title }}</div>
+                <div class="text-gray-400 mt-0.5">
+                  {{ tour.tour_date|date:"M j, Y" }} at {{ tour.tour_time|time:"H:i" }}
+                  &mdash;
+                  <span class="{% if tour.status == 'confirmed' %}text-green-600{% elif tour.status == 'cancelled' %}text-red-500{% else %}text-yellow-600{% endif %} font-semibold capitalize">{{ tour.status }}</span>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="flex-shrink-0 flex flex-col gap-2">
+        <a href="mailto:{{ agent.email }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-gray-200 text-gray-600 hover:border-primary hover:text-primary transition">
+          <i class="fas fa-envelope text-xs"></i> Email
+        </a>
+        {% with phone=agent.whatsapp|default:agent.phone %}
+        {% if phone %}
+        <a href="tel:{{ phone }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-blue-200 text-blue-600 hover:bg-blue-50 transition">
+          <i class="fas fa-phone text-xs"></i> Call
+        </a>
+        <a href="https://wa.me/{{ phone|cut:'+' }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-green-200 text-green-600 hover:bg-green-50 transition">
+          <i class="fab fa-whatsapp text-xs"></i> WhatsApp
+        </a>
+        {% endif %}
+        {% endwith %}
+        <a href="/properties/?owner={{ agent.pk }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-gray-200 text-gray-600 hover:border-primary hover:text-primary transition">
+          <i class="fas fa-home text-xs"></i> View Listings
+        </a>
+        <a href="{% url 'dashboard:report_user' agent.pk %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-red-200 text-red-500 hover:bg-red-50 transition" title="Report this agent confidentially to admin">
+          <i class="fas fa-flag text-xs"></i> Report
+        </a>
+      </div>
+
+    </div>
+  </div>
+  {% endwith %}
+  {% endfor %}
+</div>
+{% else %}
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-16 text-center">
+  <i class="fas fa-user-tie text-5xl text-gray-200 mb-4 block"></i>
+  <p class="text-gray-400 font-medium">No agents yet</p>
+  <p class="text-sm text-gray-300 mt-1">Agents whose properties you inquire about or request tours for will appear here.</p>
+  <a href="/properties/" class="inline-block mt-5 btn-primary text-sm">Browse Properties</a>
+</div>
+{% endif %}
+{% endblock %}

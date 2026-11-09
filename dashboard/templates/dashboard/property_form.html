@@ -1,0 +1,724 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}{{ title }} - NyumbaHub{% endblock %}
+{% block breadcrumb %}<i class="fas fa-chevron-right text-xs mx-1"></i><span class="font-semibold" style="color:#1D3557">{{ title }}</span>{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold" style="color:#1D3557">{{ title }}</h1>
+  <p class="text-gray-500 mt-1">Complete all steps to publish your listing.</p>
+</div>
+
+<!-- Step Progress Bar -->
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+  <div class="flex items-center justify-between relative">
+    <!-- connector line -->
+    <div class="absolute top-5 left-0 right-0 h-0.5 bg-gray-200 z-0" style="margin:0 2.5rem"></div>
+    <div id="progress-line" class="absolute top-5 left-0 h-0.5 z-0 transition-all duration-500" style="background-color:#1D3557;margin-left:2.5rem;width:0%"></div>
+
+    {% for num, label in steps %}
+    <div class="step-indicator flex flex-col items-center relative z-10" data-step="{{ num }}">
+      <div class="step-circle w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-all duration-300
+        {% if num == 1 %}border-primary bg-primary text-white{% else %}border-gray-300 bg-white text-gray-400{% endif %}"
+        style="{% if num == 1 %}background-color:#1D3557;border-color:#1D3557;color:#fff{% else %}{% endif %}">
+        <span class="step-num">{{ num }}</span>
+        <i class="fas fa-check step-check hidden text-sm"></i>
+      </div>
+      <span class="mt-2 text-xs font-semibold hidden sm:block
+        {% if num == 1 %}text-primary{% else %}text-gray-400{% endif %}"
+        style="{% if num == 1 %}color:#1D3557{% else %}{% endif %}">{{ label }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" id="listing-form">
+  {% csrf_token %}
+
+  <!-- ── STEP 1: Basic Info ── -->
+  <div class="form-step" data-step="1">
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+      <h2 class="font-bold text-lg mb-1 flex items-center gap-2" style="color:#1D3557">
+        <i class="fas fa-info-circle" style="color:#F59E0B"></i> Basic Information
+      </h2>
+      <p class="text-sm text-gray-400 mb-4">Start with the key details that describe your property.</p>
+
+      <div>
+        <label class="filter-label">Property Title <span class="text-red-400">*</span></label>
+        <input type="text" name="title" value="{{ form.title.value|default:'' }}"
+               class="filter-input mt-1" placeholder="e.g. Beautiful 3BR House in Masaki" required>
+        {% for e in form.title.errors %}<p class="text-xs text-red-500 mt-1">{{ e }}</p>{% endfor %}
+      </div>
+
+      <div>
+        <label class="filter-label">Description <span class="text-red-400">*</span></label>
+        <textarea name="description" rows="5" class="filter-input mt-1"
+                  placeholder="Describe the property in detail — features, surroundings, nearby amenities..." required>{{ form.description.value|default:'' }}</textarea>
+        {% for e in form.description.errors %}<p class="text-xs text-red-500 mt-1">{{ e }}</p>{% endfor %}
+      </div>
+
+      <!-- Property Type Cards -->
+      <div>
+        <label class="filter-label mb-2 block">Property Type</label>
+        <input type="hidden" name="property_type" id="property-type-input" value="{{ form.property_type.value|default:'' }}">
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2" id="property-type-cards">
+          {% for ptype in form.property_type.field.queryset %}
+          <button type="button"
+                  onclick="selectPropertyType('{{ ptype.id }}', this)"
+                  data-type-id="{{ ptype.id }}"
+                  class="type-card flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all duration-200 cursor-pointer
+                    {% if form.property_type.value == ptype.id|stringformat:'s' %}border-primary bg-primary/5{% else %}border-gray-200 bg-white hover:border-gray-300{% endif %}"
+                  style="{% if form.property_type.value == ptype.id|stringformat:'s' %}border-color:#1D3557;background-color:#f0f4f8{% endif %}">
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center
+              {% if form.property_type.value == ptype.id|stringformat:'s' %}bg-primary text-white{% else %}bg-gray-100 text-gray-500{% endif %}"
+              style="{% if form.property_type.value == ptype.id|stringformat:'s' %}background-color:#1D3557;color:#fff{% endif %}">
+              <i class="{{ ptype.icon }} text-base"></i>
+            </div>
+            <span class="text-xs font-semibold text-center leading-tight
+              {% if form.property_type.value == ptype.id|stringformat:'s' %}text-primary{% else %}text-gray-600{% endif %}"
+              style="{% if form.property_type.value == ptype.id|stringformat:'s' %}color:#1D3557{% endif %}">{{ ptype.name }}</span>
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="filter-label">Status <span class="text-red-400">*</span></label>
+          <select name="status" class="filter-input mt-1" required>
+            {% for val, label in form.status.field.choices %}
+            <option value="{{ val }}" {% if form.status.value == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="filter-label">Label</label>
+          <select name="label" class="filter-input mt-1">
+            <option value="">No Label</option>
+            {% for val, lbl in form.label.field.choices %}
+            {% if val %}<option value="{{ val }}" {% if form.label.value == val %}selected{% endif %}>{{ lbl }}</option>{% endif %}
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 2: Pricing & Details ── -->
+  <div class="form-step hidden" data-step="2">
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+      <h2 class="font-bold text-lg mb-1 flex items-center gap-2" style="color:#1D3557">
+        <i class="fas fa-tag" style="color:#F59E0B"></i> Pricing & Details
+      </h2>
+      <p class="text-sm text-gray-400 mb-4">Set the price and physical details of the property.</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="filter-label">Price (TZS) <span class="text-red-400">*</span></label>
+          <input type="number" name="price" value="{{ form.price.value|default:'' }}"
+                 class="filter-input mt-1" placeholder="e.g. 250000000" required>
+          {% for e in form.price.errors %}<p class="text-xs text-red-500 mt-1">{{ e }}</p>{% endfor %}
+        </div>
+        <div>
+          <label class="filter-label">Price Postfix</label>
+          <input type="text" name="price_postfix" value="{{ form.price_postfix.value|default:'' }}"
+                 class="filter-input mt-1" placeholder="e.g. /month">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div>
+          <label class="filter-label">Bedrooms</label>
+          <input type="number" name="bedrooms" value="{{ form.bedrooms.value|default:0 }}"
+                 class="filter-input mt-1" min="0">
+        </div>
+        <div>
+          <label class="filter-label">Bathrooms</label>
+          <input type="number" name="bathrooms" value="{{ form.bathrooms.value|default:0 }}"
+                 class="filter-input mt-1" min="0">
+        </div>
+        <div>
+          <label class="filter-label">Garages</label>
+          <input type="number" name="garages" value="{{ form.garages.value|default:0 }}"
+                 class="filter-input mt-1" min="0">
+        </div>
+        <div>
+          <label class="filter-label">Area (ft²)</label>
+          <input type="number" name="area" value="{{ form.area.value|default:'' }}"
+                 class="filter-input mt-1" placeholder="e.g. 1500">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="filter-label">Year Built</label>
+          <input type="number" name="year_built" value="{{ form.year_built.value|default:'' }}"
+                 class="filter-input mt-1" placeholder="e.g. 2020">
+        </div>
+        <div>
+          <label class="filter-label">Video URL <span class="text-gray-400 font-normal">(optional)</span></label>
+          <input type="url" name="video_url" value="{{ form.video_url.value|default:'' }}"
+                 class="filter-input mt-1" placeholder="YouTube or Vimeo link">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 3: Location ── -->
+  <div class="form-step hidden" data-step="3">
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+      <h2 class="font-bold text-lg mb-1 flex items-center gap-2" style="color:#1D3557">
+        <i class="fas fa-map-marker-alt" style="color:#F59E0B"></i> Location
+      </h2>
+      <p class="text-sm text-gray-400 mb-4">Tell buyers exactly where the property is located.</p>
+
+      <div>
+        <label class="filter-label">Full Address <span class="text-red-400">*</span></label>
+        <input type="text" name="address" value="{{ form.address.value|default:'' }}"
+               class="filter-input mt-1" placeholder="Street, Area" required>
+        {% for e in form.address.errors %}<p class="text-xs text-red-500 mt-1">{{ e }}</p>{% endfor %}
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="filter-label">City <span class="text-red-400">*</span></label>
+          <input type="text" name="city" value="{{ form.city.value|default:'' }}"
+                 class="filter-input mt-1" placeholder="e.g. Dar es Salaam" required>
+          {% for e in form.city.errors %}<p class="text-xs text-red-500 mt-1">{{ e }}</p>{% endfor %}
+        </div>
+        <div>
+          <label class="filter-label">State / Region</label>
+          <input type="text" name="state" value="{{ form.state.value|default:'' }}"
+                 class="filter-input mt-1" placeholder="e.g. Dar es Salaam Region">
+        </div>
+        <div>
+          <label class="filter-label">Country</label>
+          <input type="text" name="country" value="{{ form.country.value|default:'Tanzania' }}"
+                 class="filter-input mt-1">
+        </div>
+        <div>
+          <label class="filter-label">ZIP / Postal Code</label>
+          <input type="text" name="zip_code" value="{{ form.zip_code.value|default:'' }}"
+                 class="filter-input mt-1">
+        </div>
+        <div>
+          <label class="filter-label">Latitude <span class="text-gray-400 font-normal">(optional)</span></label>
+          <input type="number" name="latitude" value="{{ form.latitude.value|default:'' }}"
+                 class="filter-input mt-1" step="any" placeholder="-6.7924">
+        </div>
+        <div>
+          <label class="filter-label">Longitude <span class="text-gray-400 font-normal">(optional)</span></label>
+          <input type="number" name="longitude" value="{{ form.longitude.value|default:'' }}"
+                 class="filter-input mt-1" step="any" placeholder="39.2083">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 4: Nearby Places ── -->
+  <div class="form-step hidden" data-step="4">
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+      <h2 class="font-bold text-lg mb-1 flex items-center gap-2" style="color:#1D3557">
+        <i class="fas fa-map-pin" style="color:#F59E0B"></i> Nearby Places
+      </h2>
+      <p class="text-sm text-gray-400 mb-5">Add key places close to this property — hospitals, schools, restaurants, etc.</p>
+
+      <!-- Quick-add type buttons -->
+      <div class="flex flex-wrap gap-2 mb-5">
+        {% for val, lbl in nearby_type_choices %}
+        <button type="button" onclick="addNearbyRow('{{ val }}','{{ lbl }}')"
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:border-primary hover:text-primary hover:bg-blue-50 transition-all"
+                style="--hover-color:#1D3557">
+          <i class="{{ val }}"></i> + {{ lbl }}
+        </button>
+        {% endfor %}
+      </div>
+
+      <!-- Rows container -->
+      <div id="nearby-rows" class="space-y-3 mb-4">
+        <!-- pre-filled when editing -->
+        {% if existing_nearby %}
+        {% for place in existing_nearby %}
+        <div class="nearby-row grid grid-cols-12 gap-2 items-center bg-gray-50 rounded-xl p-3">
+          <div class="col-span-5">
+            <input type="text" name="nearby_name_{{ forloop.counter0 }}"
+                   value="{{ place.name }}" placeholder="Place name"
+                   class="filter-input w-full" required>
+          </div>
+          <div class="col-span-4">
+            <select name="nearby_type_{{ forloop.counter0 }}" class="filter-input w-full">
+              {% for v, l in nearby_type_choices %}
+              <option value="{{ v }}" {% if v == place.place_type %}selected{% endif %}>{{ l }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-span-2">
+            <input type="text" name="nearby_distance_{{ forloop.counter0 }}"
+                   value="{{ place.distance }}" placeholder="e.g. 500m"
+                   class="filter-input w-full">
+          </div>
+          <div class="col-span-1 flex justify-center">
+            <button type="button" onclick="removeRow(this)" class="w-8 h-8 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 flex items-center justify-center transition-colors">
+              <i class="fas fa-times text-xs"></i>
+            </button>
+          </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+      </div>
+
+      <button type="button" onclick="addNearbyRow()"
+              class="flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-dashed border-gray-300 text-sm text-gray-500 hover:border-primary hover:text-primary transition-all w-full justify-center">
+        <i class="fas fa-plus"></i> Add a place manually
+      </button>
+
+      <div id="nearby-empty" class="text-center py-6 text-gray-400 text-sm {% if existing_nearby %}hidden{% endif %}">
+        <i class="fas fa-map-pin text-3xl text-gray-200 block mb-2"></i>
+        No places added yet. Use the buttons above or click "Add a place manually".
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 5: Amenities, Photos & Publish ── -->
+  <div class="form-step hidden" data-step="5">
+
+    <!-- Amenities -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4">
+      <h2 class="font-bold text-lg mb-1 flex items-center gap-2" style="color:#1D3557">
+        <i class="fas fa-list-check" style="color:#F59E0B"></i> Amenities
+      </h2>
+      <p class="text-sm text-gray-400 mb-4">Select all amenities available at this property.</p>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {% for amenity in form.amenities.field.queryset %}
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" name="amenities" value="{{ amenity.id }}"
+                 class="w-4 h-4 rounded" style="accent-color:#1D3557"
+                 {% if amenity.id in form.amenities.value %}checked{% endif %}>
+          <span class="text-sm text-gray-600">{{ amenity.name }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Images -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4">
+      <h2 class="font-bold text-lg mb-1 flex items-center gap-2" style="color:#1D3557">
+        <i class="fas fa-images" style="color:#F59E0B"></i> Property Photos
+      </h2>
+      <p class="text-sm text-gray-400 mb-4">Upload high-quality images. The first image will be the main cover photo.</p>
+
+      <div class="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center hover:border-primary transition-colors cursor-pointer"
+           onclick="document.getElementById('images-input').click()">
+        <i class="fas fa-cloud-upload-alt text-4xl text-gray-300 mb-3 block"></i>
+        <p class="text-gray-500 mb-1 font-medium">Drag & drop or click to browse</p>
+        <p class="text-xs text-gray-400">Recommended: 1280×720px · JPG, PNG · Max 5MB each</p>
+        <input type="file" name="images" multiple accept="image/*" class="hidden"
+               id="images-input" onchange="previewImages(this)">
+      </div>
+      <div id="image-preview" class="grid grid-cols-3 md:grid-cols-5 gap-3 mt-4"></div>
+
+      {% if prop %}
+      <div class="mt-4">
+        <p class="text-sm text-gray-500 font-medium mb-2">Current Images:</p>
+        <div class="grid grid-cols-4 md:grid-cols-6 gap-3">
+          {% for img in prop.images.all %}
+          <div class="relative">
+            <img src="{{ img.image.url }}" class="w-full h-20 object-cover rounded-xl">
+            {% if img.is_main %}<span class="absolute top-1 left-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-md">Main</span>{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Floor Plans / Site Plans -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4">
+      <h2 class="font-bold text-lg mb-1 flex items-center gap-2" style="color:#1D3557">
+        <i class="fas fa-drafting-compass" style="color:#F59E0B"></i> Floor Plans &amp; Site Plans
+      </h2>
+      <p class="text-sm text-gray-400 mb-4">Upload floor plan or site plan images. Each can have its own label.</p>
+
+      <div id="floorplan-rows" class="space-y-3 mb-3">
+        {% if prop %}
+        {% for plan in prop.floor_plans.all %}
+        <div class="floorplan-row flex items-center gap-3 bg-gray-50 rounded-xl p-3">
+          <div class="w-16 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-gray-200">
+            {% if plan.image %}<img src="{{ plan.image.url }}" class="w-full h-full object-cover">{% else %}<div class="w-full h-full flex items-center justify-center text-gray-400"><i class="fas fa-image"></i></div>{% endif %}
+          </div>
+          <span class="text-sm text-gray-600 flex-1">{{ plan.name }}</span>
+          <span class="text-xs text-gray-400 bg-white border border-gray-200 px-2 py-1 rounded-lg">Saved</span>
+        </div>
+        {% endfor %}
+        {% endif %}
+      </div>
+
+      <div id="new-floorplan-rows" class="space-y-3 mb-3"></div>
+
+      <button type="button" onclick="addFloorplanRow()"
+              class="flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-dashed border-gray-300 text-sm text-gray-500 hover:border-primary hover:text-primary transition-all w-full justify-center">
+        <i class="fas fa-plus"></i> Add floor plan / site plan
+      </button>
+    </div>
+
+    <!-- 3D Images / Virtual Tour -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4">
+      <h2 class="font-bold text-lg mb-1 flex items-center gap-2" style="color:#1D3557">
+        <i class="fas fa-cube" style="color:#F59E0B"></i> 3D Images &amp; Virtual Tour
+        <span class="text-xs font-normal text-gray-400 ml-1">— Optional</span>
+      </h2>
+      <p class="text-sm text-gray-400 mb-4">Upload 3D rendered images or 360° photos, and/or add a virtual tour link.</p>
+
+      <!-- 3D Image Upload -->
+      <div class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-primary transition-colors cursor-pointer mb-4"
+           onclick="document.getElementById('images-3d-input').click()">
+        <i class="fas fa-cube text-3xl text-gray-300 mb-2 block"></i>
+        <p class="text-gray-500 text-sm font-medium mb-1">Click to upload 3D render or 360° images</p>
+        <p class="text-xs text-gray-400">JPG, PNG · Multiple files allowed</p>
+        <input type="file" name="images_3d" multiple accept="image/*" class="hidden"
+               id="images-3d-input" onchange="preview3dImages(this)">
+      </div>
+      <div id="preview-3d" class="grid grid-cols-3 md:grid-cols-5 gap-3 mb-4"></div>
+
+      {% if prop %}
+      {% with renders=prop.images.all %}
+      {% if renders %}
+      {% for img in renders %}
+      {% if img.image_type == '3d' %}
+      {% if forloop.first %}
+      <p class="text-sm text-gray-500 font-medium mb-2">Saved 3D Images:</p>
+      <div class="grid grid-cols-4 md:grid-cols-6 gap-3 mb-4">
+      {% endif %}
+        <div class="relative">
+          <img src="{{ img.image.url }}" class="w-full h-20 object-cover rounded-xl">
+          <span class="absolute top-1 left-1 text-white text-xs px-1.5 py-0.5 rounded-md" style="background-color:#1D3557">3D</span>
+        </div>
+      {% if forloop.last %}</div>{% endif %}
+      {% endif %}
+      {% endfor %}
+      {% endif %}
+      {% endwith %}
+      {% endif %}
+
+      <!-- Virtual Tour URL -->
+      <div>
+        <label class="filter-label">Virtual Tour URL <span class="text-gray-400 font-normal">(Matterport, iGuide, etc.)</span></label>
+        <input type="url" name="virtual_tour_url" value="{{ form.virtual_tour_url.value|default:'' }}"
+               class="filter-input mt-1" placeholder="https://my.matterport.com/show/?m=...">
+        <p class="text-xs text-gray-400 mt-1">Paste the embed URL from your 3D tour platform — it will appear as a full interactive viewer on the listing.</p>
+      </div>
+    </div>
+
+    <!-- Publish Settings -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+      <h2 class="font-bold text-lg mb-1 flex items-center gap-2" style="color:#1D3557">
+        <i class="fas fa-cog" style="color:#F59E0B"></i> Publish Settings
+      </h2>
+      <p class="text-sm text-gray-400 mb-4">Choose visibility options for your listing.</p>
+      <div class="flex flex-col gap-4">
+        <label class="flex items-start gap-4 cursor-pointer p-4 rounded-xl border border-gray-100 hover:border-gray-300 transition-colors">
+          <input type="checkbox" name="is_published" value="true"
+                 {% if form.is_published.value %}checked{% endif %}
+                 class="w-5 h-5 mt-0.5 rounded" style="accent-color:#1D3557">
+          <div>
+            <div class="font-semibold text-gray-700">Publish immediately</div>
+            <div class="text-xs text-gray-400 mt-0.5">Make this listing visible to the public right away</div>
+          </div>
+        </label>
+        <label class="flex items-start gap-4 cursor-pointer p-4 rounded-xl border border-gray-100 hover:border-gray-300 transition-colors">
+          <input type="checkbox" name="is_featured" value="true"
+                 {% if form.is_featured.value %}checked{% endif %}
+                 class="w-5 h-5 mt-0.5 rounded" style="accent-color:#1D3557">
+          <div>
+            <div class="font-semibold text-gray-700">Mark as Featured</div>
+            <div class="text-xs text-gray-400 mt-0.5">Show this property in the featured section on the homepage</div>
+          </div>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Buttons -->
+  <div class="flex items-center justify-between mt-6">
+    <button type="button" id="btn-back"
+            class="btn-outline px-8 hidden"
+            onclick="changeStep(-1)">
+      <i class="fas fa-arrow-left mr-2"></i> Back
+    </button>
+    <div class="ml-auto flex gap-3">
+      <a href="{% url 'dashboard:my_properties' %}" class="btn-outline px-6 text-sm">Cancel</a>
+      <button type="button" id="btn-next"
+              class="btn-primary px-8"
+              onclick="changeStep(1)">
+        Next <i class="fas fa-arrow-right ml-2"></i>
+      </button>
+      <button type="submit" id="btn-submit"
+              class="btn-primary px-10 hidden">
+        <i class="fas fa-paper-plane mr-2"></i> {{ title }}
+      </button>
+    </div>
+  </div>
+
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Property Type card picker ──
+function selectPropertyType(id, btn) {
+  document.getElementById('property-type-input').value = id;
+  document.querySelectorAll('.type-card').forEach(card => {
+    const icon = card.querySelector('div');
+    const label = card.querySelector('span');
+    card.style.borderColor = '#e5e7eb';
+    card.style.backgroundColor = '#fff';
+    icon.style.backgroundColor = '#f3f4f6';
+    icon.style.color = '#6b7280';
+    label.style.color = '#4b5563';
+  });
+  const icon = btn.querySelector('div');
+  const label = btn.querySelector('span');
+  btn.style.borderColor = '#1D3557';
+  btn.style.backgroundColor = '#f0f4f8';
+  icon.style.backgroundColor = '#1D3557';
+  icon.style.color = '#fff';
+  label.style.color = '#1D3557';
+}
+
+const TOTAL_STEPS = 5;
+let currentStep = 1;
+
+// Check if Django returned form errors — go to step 1 if so
+{% if form.errors %}
+currentStep = 1;
+{% endif %}
+
+function getStepEl(n) {
+  return document.querySelector(`.form-step[data-step="${n}"]`);
+}
+
+function updateUI() {
+  // Show/hide steps
+  document.querySelectorAll('.form-step').forEach(el => el.classList.add('hidden'));
+  getStepEl(currentStep).classList.remove('hidden');
+
+  // Back button
+  document.getElementById('btn-back').classList.toggle('hidden', currentStep === 1);
+
+  // Next vs Submit
+  document.getElementById('btn-next').classList.toggle('hidden', currentStep === TOTAL_STEPS);
+  document.getElementById('btn-submit').classList.toggle('hidden', currentStep !== TOTAL_STEPS);
+
+  // Update step indicators
+  document.querySelectorAll('.step-indicator').forEach(ind => {
+    const n = parseInt(ind.dataset.step);
+    const circle = ind.querySelector('.step-circle');
+    const numEl  = ind.querySelector('.step-num');
+    const chkEl  = ind.querySelector('.step-check');
+    const label  = ind.querySelector('span:not(.step-num):not(.step-check)');
+
+    circle.style.cssText = '';
+    numEl.classList.remove('hidden');
+    chkEl.classList.add('hidden');
+
+    if (n < currentStep) {
+      // Completed
+      circle.style.backgroundColor = '#1D3557';
+      circle.style.borderColor     = '#1D3557';
+      circle.style.color           = '#fff';
+      numEl.classList.add('hidden');
+      chkEl.classList.remove('hidden');
+      if (label) { label.style.color = '#1D3557'; }
+    } else if (n === currentStep) {
+      // Active
+      circle.style.backgroundColor = '#1D3557';
+      circle.style.borderColor     = '#1D3557';
+      circle.style.color           = '#fff';
+      if (label) { label.style.color = '#1D3557'; }
+    } else {
+      // Future
+      circle.style.backgroundColor = '#fff';
+      circle.style.borderColor     = '#d1d5db';
+      circle.style.color           = '#9ca3af';
+      if (label) { label.style.color = '#9ca3af'; }
+    }
+  });
+
+  // Progress line width: fills from step 1 to current
+  const pct = ((currentStep - 1) / (TOTAL_STEPS - 1)) * 100;
+  document.getElementById('progress-line').style.width = `calc(${pct}% - 0px)`;
+
+  // Scroll to top of form
+  document.getElementById('listing-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function validateStep(n) {
+  const stepEl = getStepEl(n);
+  const required = stepEl.querySelectorAll('[required]');
+  let valid = true;
+  required.forEach(field => {
+    field.style.borderColor = '';
+    if (!field.value.trim()) {
+      field.style.borderColor = '#f87171';
+      valid = false;
+    }
+  });
+  if (!valid) {
+    stepEl.querySelector('[required]:invalid, [required]')?.focus();
+  }
+  return valid;
+}
+
+function changeStep(dir) {
+  if (dir === 1 && !validateStep(currentStep)) return;
+  currentStep = Math.min(Math.max(1, currentStep + dir), TOTAL_STEPS);
+  updateUI();
+}
+
+// ── Nearby Places ──
+const TYPE_OPTIONS = [
+  {% for val, lbl in nearby_type_choices %}['{{ val }}','{{ lbl }}'],{% endfor %}
+];
+
+function rowCount() {
+  return document.querySelectorAll('#nearby-rows .nearby-row').length;
+}
+
+function syncEmptyState() {
+  document.getElementById('nearby-empty').classList.toggle('hidden', rowCount() > 0);
+}
+
+function reindexRows() {
+  document.querySelectorAll('#nearby-rows .nearby-row').forEach((row, i) => {
+    row.querySelector('input[type=text]:first-of-type').name = `nearby_name_${i}`;
+    row.querySelector('select').name = `nearby_type_${i}`;
+    row.querySelector('input[type=text]:last-of-type').name = `nearby_distance_${i}`;
+  });
+}
+
+function addNearbyRow(typeVal = '', typeLbl = '') {
+  const idx = rowCount();
+  const opts = TYPE_OPTIONS.map(([v, l]) =>
+    `<option value="${v}" ${v === typeVal ? 'selected' : ''}>${l}</option>`
+  ).join('');
+
+  const row = document.createElement('div');
+  row.className = 'nearby-row grid grid-cols-12 gap-2 items-center bg-gray-50 rounded-xl p-3';
+  row.innerHTML = `
+    <div class="col-span-5">
+      <input type="text" name="nearby_name_${idx}" placeholder="Place name e.g. Aga Khan Hospital"
+             class="filter-input w-full">
+    </div>
+    <div class="col-span-4">
+      <select name="nearby_type_${idx}" class="filter-input w-full">${opts}</select>
+    </div>
+    <div class="col-span-2">
+      <input type="text" name="nearby_distance_${idx}" placeholder="e.g. 500m"
+             class="filter-input w-full">
+    </div>
+    <div class="col-span-1 flex justify-center">
+      <button type="button" onclick="removeRow(this)"
+              class="w-8 h-8 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 flex items-center justify-center transition-colors">
+        <i class="fas fa-times text-xs"></i>
+      </button>
+    </div>`;
+  document.getElementById('nearby-rows').appendChild(row);
+  syncEmptyState();
+  row.querySelector('input').focus();
+}
+
+function removeRow(btn) {
+  btn.closest('.nearby-row').remove();
+  reindexRows();
+  syncEmptyState();
+}
+
+// ── Floor Plans ──
+let floorplanCount = 0;
+
+function addFloorplanRow() {
+  const container = document.getElementById('new-floorplan-rows');
+  const idx = floorplanCount++;
+  const row = document.createElement('div');
+  row.className = 'floorplan-row bg-gray-50 rounded-xl p-3 space-y-2';
+  row.innerHTML = `
+    <div class="flex items-center gap-2">
+      <input type="text" name="floorplan_names" placeholder="Label e.g. Ground Floor, Site Plan"
+             class="filter-input flex-1">
+      <button type="button" onclick="this.closest('.floorplan-row').remove()"
+              class="w-8 h-8 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 flex items-center justify-center flex-shrink-0 transition-colors">
+        <i class="fas fa-times text-xs"></i>
+      </button>
+    </div>
+    <div class="floorplan-upload-area border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-primary transition-colors"
+         onclick="this.querySelector('input').click()">
+      <i class="fas fa-drafting-compass text-gray-300 text-2xl mb-1 block"></i>
+      <p class="text-xs text-gray-500">Click to upload image</p>
+      <input type="file" name="floorplan_images" accept="image/*" class="hidden"
+             onchange="previewFloorplan(this)">
+    </div>`;
+  container.appendChild(row);
+  row.querySelector('input[type=text]').focus();
+}
+
+function previewFloorplan(input) {
+  if (!input.files[0]) return;
+  const reader = new FileReader();
+  const area = input.closest('.floorplan-upload-area');
+  reader.onload = e => {
+    area.innerHTML = `<img src="${e.target.result}" class="max-h-40 mx-auto rounded-lg object-contain">
+      <p class="text-xs text-gray-400 mt-1">${input.files[0].name}</p>
+      <input type="file" name="floorplan_images" accept="image/*" class="hidden" onchange="previewFloorplan(this)">`;
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+// ── 3D Images ──
+function preview3dImages(input) {
+  const preview = document.getElementById('preview-3d');
+  preview.innerHTML = '';
+  [...input.files].forEach((file, i) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const div = document.createElement('div');
+      div.className = 'relative';
+      div.innerHTML = `
+        <img src="${e.target.result}" class="w-full h-24 object-cover rounded-xl">
+        <span class="absolute top-1 left-1 text-white text-xs px-1.5 py-0.5 rounded-md" style="background-color:#1D3557">3D</span>`;
+      preview.appendChild(div);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── Property Photos ──
+function previewImages(input) {
+  const preview = document.getElementById('image-preview');
+  preview.innerHTML = '';
+  [...input.files].forEach((file, i) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const div = document.createElement('div');
+      div.className = 'relative';
+      div.innerHTML = `
+        <img src="${e.target.result}" class="w-full h-24 object-cover rounded-xl">
+        <span class="absolute top-1 left-1 text-white text-xs px-1.5 py-0.5 rounded-md"
+              style="background-color:${i === 0 ? '#1D3557' : '#6b7280'}">${i === 0 ? 'Main' : i + 1}</span>`;
+      preview.appendChild(div);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// Also allow clicking the progress step circles to jump back
+document.querySelectorAll('.step-indicator').forEach(ind => {
+  ind.style.cursor = 'pointer';
+  ind.addEventListener('click', () => {
+    const n = parseInt(ind.dataset.step);
+    if (n < currentStep) { currentStep = n; updateUI(); }
+  });
+});
+
+// Init
+updateUI();
+</script>
+{% endblock %}

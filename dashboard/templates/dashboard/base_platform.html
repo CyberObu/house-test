@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Admin Platform - NyumbaHub{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#1D3557', 50:'#e8ecf2', 100:'#c5cfdf', 700:'#284d75', 800:'#1D3557', 900:'#142440' },
+            accent:  { DEFAULT: '#F59E0B', 600:'#d97706' },
+          },
+          fontFamily: { sans: ['Inter','sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% block extra_css %}{% endblock %}
+  <style>
+    body { overflow-x: hidden; }
+    .dash-sidebar { width: 240px; height: 100vh; overflow: hidden; }
+    .dash-main   { margin-left: 240px; min-height: 100vh; }
+    .sidebar-nav-link {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 16px; border-radius: 12px;
+      color: rgba(255,255,255,0.65); font-size: 0.875rem; font-weight: 500;
+      transition: all 0.2s; cursor: pointer; text-decoration: none;
+    }
+    .sidebar-nav-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .sidebar-nav-link.active { background: rgba(255,255,255,0.15); color: #fff; font-weight: 600; }
+    .sidebar-nav-link .icon { width: 20px; text-align: center; }
+    .sidebar-group-title { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.35); padding: 0 16px; margin: 16px 0 6px; }
+    @media (max-width: 1023px) {
+      .dash-sidebar { position: fixed; top:0; left:-240px; z-index:50; transition: left 0.3s; }
+      .dash-sidebar.open { left: 0; }
+      .dash-main { margin-left: 0; }
+      .sidebar-overlay { display: none; position: fixed; inset:0; background:rgba(0,0,0,0.5); z-index:40; }
+      .sidebar-overlay.show { display: block; }
+    }
+    .filter-input, .form-input {
+      display: block !important; width: 100% !important;
+      padding: 0.625rem 0.875rem !important; border: 1.5px solid #d1d5db !important;
+      border-radius: 0.625rem !important; font-size: 0.875rem !important;
+      color: #374151 !important; background: #fff !important; outline: none !important;
+      transition: border-color 0.2s, box-shadow 0.2s !important;
+    }
+    .filter-input:focus, .form-input:focus { border-color: #1D3557 !important; box-shadow: 0 0 0 3px rgba(29,53,87,0.08) !important; }
+    .filter-input::placeholder, .form-input::placeholder { color: #9ca3af !important; }
+    textarea.filter-input, textarea.form-input { resize: vertical !important; }
+    select.filter-input, select.form-input { cursor: pointer !important; }
+    .filter-label, .form-label { display: block !important; font-size: 0.8125rem !important; font-weight: 600 !important; color: #374151 !important; margin-bottom: 0.375rem !important; }
+    .btn-primary { display: inline-flex !important; align-items: center !important; justify-content: center !important; padding: 0.625rem 1.25rem !important; background: #1D3557 !important; color: #fff !important; border-radius: 0.625rem !important; font-weight: 600 !important; font-size: 0.875rem !important; border: none !important; cursor: pointer !important; transition: background 0.2s !important; text-decoration: none !important; }
+    .btn-primary:hover { background: #284d75 !important; color: #fff !important; }
+    .btn-outline { display: inline-flex !important; align-items: center !important; justify-content: center !important; padding: 0.625rem 1.25rem !important; background: transparent !important; color: #1D3557 !important; border: 2px solid #1D3557 !important; border-radius: 0.625rem !important; font-weight: 600 !important; font-size: 0.875rem !important; cursor: pointer !important; transition: all 0.2s !important; text-decoration: none !important; }
+    .btn-outline:hover { background: #1D3557 !important; color: #fff !important; }
+  </style>
+</head>
+<body class="font-sans bg-gray-50 text-gray-700">
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- ═══ PLATFORM SIDEBAR ═══ -->
+<aside class="dash-sidebar fixed top-0 left-0 flex flex-col" id="sidebar" style="background-color:#1D3557">
+
+  <!-- Logo -->
+  <div class="flex items-center gap-3 px-5 py-5 border-b border-white/10">
+    <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background-color:#F59E0B">
+      <i class="fas fa-shield-alt text-white text-base"></i>
+    </div>
+    <div>
+      <span class="text-base font-bold text-white">Admin <span style="color:#F59E0B">Platform</span></span>
+      <div class="text-xs text-white/40 font-medium">NyumbaHub</div>
+    </div>
+    <button onclick="closeSidebar()" class="lg:hidden ml-auto text-white/50 hover:text-white">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+
+  <!-- Admin Badge -->
+  <div class="px-4 py-4 border-b border-white/10">
+    <div class="flex items-center gap-3">
+      <img src="{{ user.get_avatar_url }}" class="w-10 h-10 rounded-xl object-cover border-2 border-white/20 flex-shrink-0" alt="">
+      <div class="min-w-0">
+        <div class="text-white font-semibold text-sm truncate">{{ user.get_full_name|default:user.username }}</div>
+        <div class="flex items-center gap-1.5 mt-0.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span>
+          <span class="text-white/50 text-xs">Administrator</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+
+    <div class="sidebar-group-title">Overview</div>
+    <a href="{% url 'platform:overview' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'overview' %}active{% endif %}">
+      <i class="fas fa-chart-pie icon"></i> Dashboard
+    </a>
+
+    <div class="sidebar-group-title">Management</div>
+    <a href="{% url 'platform:listings' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'listings' %}active{% endif %}">
+      <i class="fas fa-home icon"></i>
+      Listing Approvals
+      {% if admin_pending_listings_count %}<span class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ admin_pending_listings_count }}</span>{% endif %}
+    </a>
+    <a href="{% url 'platform:verifications' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'verifications' %}active{% endif %}">
+      <i class="fas fa-user-check icon"></i>
+      Agent Verifications
+      {% if admin_pending_verifs_count %}<span class="ml-auto bg-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ admin_pending_verifs_count }}</span>{% endif %}
+    </a>
+    <a href="{% url 'platform:payments' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'payments' %}active{% endif %}">
+      <i class="fas fa-money-bill-wave icon"></i>
+      Agent Payments
+      {% if admin_pending_payments_count %}<span class="ml-auto bg-yellow-400 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ admin_pending_payments_count }}</span>{% endif %}
+    </a>
+    <a href="{% url 'platform:agents' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'agents' %}active{% endif %}">
+      <i class="fas fa-user-tie icon"></i> All Agents
+    </a>
+    <a href="{% url 'platform:buyers' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'buyers' %}active{% endif %}">
+      <i class="fas fa-users icon"></i> All Buyers
+    </a>
+
+    <div class="sidebar-group-title">Reports</div>
+    <a href="{% url 'platform:reports' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
+      <i class="fas fa-flag icon"></i>
+      Reports Inbox
+      {% if admin_open_reports_count %}<span class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ admin_open_reports_count }}</span>{% endif %}
+    </a>
+
+  </nav>
+
+  <!-- Bottom Links -->
+  <div class="px-3 pb-5 border-t border-white/10 pt-4 space-y-1">
+    <a href="{% url 'dashboard:home' %}" class="sidebar-nav-link">
+      <i class="fas fa-columns icon"></i> User Dashboard
+    </a>
+    <a href="/" class="sidebar-nav-link">
+      <i class="fas fa-globe icon"></i> View Website
+    </a>
+    <a href="{% url 'accounts:logout' %}" class="sidebar-nav-link hover:!bg-red-500/20 hover:!text-red-300">
+      <i class="fas fa-sign-out-alt icon"></i> Sign Out
+    </a>
+  </div>
+</aside>
+
+<!-- ═══ MAIN AREA ═══ -->
+<div class="dash-main flex flex-col">
+
+  <!-- Top Bar -->
+  <header class="bg-white border-b border-gray-200 px-6 py-3.5 flex items-center gap-4 sticky top-0 z-30">
+    <button onclick="openSidebar()" class="lg:hidden text-gray-500 hover:text-primary mr-2">
+      <i class="fas fa-bars text-xl"></i>
+    </button>
+    <div class="flex items-center gap-2 text-sm text-gray-500 min-w-0">
+      <span class="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-md text-white" style="background-color:#1D3557">Admin</span>
+      <i class="fas fa-chevron-right text-xs"></i>
+      {% block breadcrumb %}<span class="font-medium text-gray-700">Platform</span>{% endblock %}
+    </div>
+    <div class="ml-auto flex items-center gap-3">
+      <a href="/" class="hidden md:flex items-center gap-2 text-sm text-gray-500 hover:text-primary border border-gray-200 hover:border-primary/30 rounded-xl px-3 py-2 transition-all">
+        <i class="fas fa-external-link-alt text-xs"></i> View Site
+      </a>
+      <div class="relative group">
+        <button class="flex items-center gap-2">
+          <img src="{{ user.get_avatar_url }}" class="w-9 h-9 rounded-xl object-cover border-2 border-gray-200" alt="">
+          <span class="hidden md:block text-sm font-semibold text-gray-700">{{ user.first_name|default:user.username }}</span>
+          <i class="fas fa-chevron-down text-xs text-gray-400"></i>
+        </button>
+        <div class="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 py-2">
+          <div class="px-4 py-2 border-b border-gray-100 mb-1">
+            <div class="font-semibold text-sm" style="color:#1D3557">{{ user.get_full_name }}</div>
+            <div class="text-xs text-gray-400">{{ user.email }}</div>
+          </div>
+          <a href="{% url 'dashboard:profile_settings' %}" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary">
+            <i class="fas fa-user-circle w-4"></i> My Profile
+          </a>
+          <hr class="my-1 border-gray-100">
+          <a href="{% url 'accounts:logout' %}" class="flex items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-red-50">
+            <i class="fas fa-sign-out-alt w-4"></i> Sign Out
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Django Messages -->
+  {% if messages %}
+  <div class="px-6 pt-4 space-y-2">
+    {% for message in messages %}
+    <div class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
+      {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200
+      {% elif message.tags == 'success' %}bg-green-50 text-green-700 border border-green-200
+      {% elif message.tags == 'warning' %}bg-yellow-50 text-yellow-700 border border-yellow-200
+      {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+      <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% elif message.tags == 'success' %}fa-check-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %}"></i>
+      {{ message }}
+      <button onclick="this.parentElement.remove()" class="ml-auto opacity-60 hover:opacity-100"><i class="fas fa-times text-xs"></i></button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="flex-1 p-6">
+    {% block platform_content %}{% endblock %}
+  </div>
+
+  <footer class="px-6 py-4 border-t border-gray-100 text-xs text-gray-400 flex flex-wrap items-center justify-between gap-2">
+    <span>&copy; {% now "Y" %} NyumbaHub Admin Platform</span>
+    <span class="text-xs text-gray-300">Restricted access — administrators only</span>
+  </footer>
+</div>
+
+<script>
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebar-overlay').classList.add('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('show');
+}
+setTimeout(() => {
+  document.querySelectorAll('.px-6.pt-4 > div').forEach(el => {
+    el.style.transition = 'opacity 0.5s';
+    el.style.opacity = '0';
+    setTimeout(() => el.remove(), 500);
+  });
+}, 4000);
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,56 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block dashboard_content %}
+
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+  <h2 class="text-xl font-bold text-primary mb-6 flex items-center gap-2">
+    <i class="fas fa-bookmark text-accent"></i> Saved Searches
+  </h2>
+
+  {% if searches %}
+  <div class="space-y-4">
+    {% for search in searches %}
+    <div class="border border-gray-100 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-primary/30 transition-colors">
+      <div class="flex-1">
+        <div class="flex items-center gap-3 mb-2">
+          <h3 class="font-semibold text-primary">{{ search.name }}</h3>
+          {% if search.email_alerts %}
+          <span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-semibold">
+            <i class="fas fa-bell mr-1"></i>Alerts On
+          </span>
+          {% else %}
+          <span class="bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full font-semibold">
+            <i class="fas fa-bell-slash mr-1"></i>Alerts Off
+          </span>
+          {% endif %}
+        </div>
+        <div class="flex flex-wrap gap-2">
+          {% for key, val in search.filters.items %}
+          {% if val %}
+          <span class="bg-primary/5 text-primary text-xs px-3 py-1 rounded-full">{{ key }}: {{ val }}</span>
+          {% endif %}
+          {% endfor %}
+        </div>
+        <p class="text-gray-400 text-xs mt-2">Saved {{ search.created_at|date:"M d, Y" }}</p>
+      </div>
+      <div class="flex gap-3">
+        <a href="{{ search.get_results_url }}" class="btn-primary text-sm">
+          <i class="fas fa-search mr-1"></i>View Results
+        </a>
+        <a href="{% url 'properties:delete_saved_search' search.pk %}" class="border-2 border-red-200 text-red-500 hover:bg-red-50 px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
+           onclick="return confirm('Delete this saved search?')">
+          <i class="fas fa-trash-alt"></i>
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-12">
+    <i class="fas fa-bookmark text-5xl text-gray-200 mb-4"></i>
+    <p class="text-gray-400 mb-4">No saved searches yet.</p>
+    <a href="{% url 'properties:list' %}" class="btn-primary text-sm">Browse Properties</a>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

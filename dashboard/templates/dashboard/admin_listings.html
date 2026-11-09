@@ -1,0 +1,116 @@
+{% extends 'dashboard/base_platform.html' %}
+{% block title %}Listing Approvals - NyumbaHub{% endblock %}
+{% block breadcrumb %}Listing Approvals{% endblock %}
+
+{% block platform_content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold" style="color:#1D3557">Listing Approvals</h1>
+    <p class="text-gray-500 mt-1">Review and approve or reject agent property listings.</p>
+  </div>
+  <div class="flex gap-2">
+    <a href="?status=pending" class="px-4 py-2 rounded-xl text-sm font-semibold transition {% if status_filter == 'pending' %}text-white{% else %}border border-gray-200 text-gray-600 hover:border-primary{% endif %}" style="{% if status_filter == 'pending' %}background-color:#1D3557{% endif %}">Pending</a>
+    <a href="?status=approved" class="px-4 py-2 rounded-xl text-sm font-semibold border border-gray-200 text-gray-600 hover:border-primary transition {% if status_filter == 'approved' %}bg-green-500 text-white border-green-500{% endif %}">Approved</a>
+    <a href="?status=rejected" class="px-4 py-2 rounded-xl text-sm font-semibold border border-gray-200 text-gray-600 hover:border-primary transition {% if status_filter == 'rejected' %}bg-red-500 text-white border-red-500{% endif %}">Rejected</a>
+  </div>
+</div>
+
+<div class="space-y-4">
+{% for prop in page_obj %}
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+  <div class="flex flex-col md:flex-row gap-4">
+    {% with img=prop.images.first %}
+    {% if img %}<img src="{{ img.image.url }}" class="w-full md:w-40 h-28 object-cover rounded-xl flex-shrink-0">
+    {% else %}<div class="w-full md:w-40 h-28 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0"><i class="fas fa-home text-gray-300 text-3xl"></i></div>{% endif %}
+    {% endwith %}
+    <div class="flex-1 min-w-0">
+      <div class="flex items-start justify-between gap-2 flex-wrap">
+        <div>
+          <h3 class="font-bold text-gray-800">{{ prop.title }}</h3>
+          <p class="text-sm text-gray-400 mt-0.5"><i class="fas fa-map-marker-alt mr-1" style="color:#F59E0B"></i>{{ prop.address }}, {{ prop.city }}</p>
+          <p class="text-sm text-gray-400 mt-0.5"><i class="fas fa-user mr-1"></i>{{ prop.owner.get_full_name }} &middot; {{ prop.owner.email }}</p>
+          <p class="text-xs text-gray-400 mt-1">Submitted: {{ prop.created_at|date:"F j, Y H:i" }}</p>
+          {% if prop.rejection_reason %}<p class="text-xs text-red-500 mt-1">Rejection reason: {{ prop.rejection_reason }}</p>{% endif %}
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          {% if prop.owner.is_verified %}
+          <span class="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-600 text-xs font-semibold rounded-lg"><i class="fas fa-check-circle"></i> Verified Agent</span>
+          {% else %}
+          <span class="flex items-center gap-1 px-2 py-1 bg-yellow-50 text-yellow-600 text-xs font-semibold rounded-lg"><i class="fas fa-exclamation-circle"></i> Unverified</span>
+          {% endif %}
+          <span class="px-2 py-1 text-xs font-semibold rounded-lg
+            {% if prop.approval_status == 'pending' %}bg-yellow-50 text-yellow-600
+            {% elif prop.approval_status == 'approved' %}bg-green-50 text-green-600
+            {% else %}bg-red-50 text-red-600{% endif %}">
+            {{ prop.get_approval_status_display }}
+          </span>
+        </div>
+      </div>
+      <div class="flex gap-2 mt-3 flex-wrap">
+        <a href="{{ prop.get_absolute_url }}" target="_blank" class="px-3 py-1.5 border border-gray-200 text-gray-600 text-xs font-semibold rounded-lg hover:border-primary hover:text-primary transition">
+          <i class="fas fa-eye mr-1"></i> Preview
+        </a>
+        {% if prop.approval_status != 'approved' %}
+        <form method="post" action="{% url 'platform:approve_listing' prop.pk %}" class="inline">
+          {% csrf_token %}
+          <button type="submit" class="px-3 py-1.5 bg-green-500 text-white text-xs font-semibold rounded-lg hover:bg-green-600 transition">
+            <i class="fas fa-check mr-1"></i> Approve
+          </button>
+        </form>
+        {% endif %}
+        {% if prop.approval_status != 'rejected' %}
+        <button type="button" onclick="showRejectModal({{ prop.pk }}, '{{ prop.title|escapejs }}')"
+                class="px-3 py-1.5 bg-red-50 text-red-500 text-xs font-semibold rounded-lg hover:bg-red-500 hover:text-white transition">
+          <i class="fas fa-times mr-1"></i> Reject
+        </button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% empty %}
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
+  <i class="fas fa-inbox text-5xl text-gray-200 mb-3 block"></i>
+  <p class="text-gray-400">No {{ status_filter }} listings.</p>
+</div>
+{% endfor %}
+</div>
+
+{% if page_obj.has_other_pages %}
+<div class="flex justify-center gap-2 mt-6">
+  {% if page_obj.has_previous %}<a href="?status={{ status_filter }}&page={{ page_obj.previous_page_number }}" class="px-4 py-2 border border-gray-200 rounded-xl text-sm hover:border-primary transition">&larr; Prev</a>{% endif %}
+  <span class="px-4 py-2 text-sm text-gray-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a href="?status={{ status_filter }}&page={{ page_obj.next_page_number }}" class="px-4 py-2 border border-gray-200 rounded-xl text-sm hover:border-primary transition">Next &rarr;</a>{% endif %}
+</div>
+{% endif %}
+
+<!-- Reject Modal -->
+<div id="reject-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" style="display:none">
+  <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+    <h3 class="font-bold text-lg mb-1" style="color:#1D3557">Reject Listing</h3>
+    <p id="reject-modal-title" class="text-sm text-gray-400 mb-4"></p>
+    <form id="reject-form" method="post">
+      {% csrf_token %}
+      <label class="filter-label">Rejection Reason</label>
+      <textarea name="reason" rows="3" class="filter-input mt-1 mb-4" placeholder="Tell the agent why this listing was rejected..." required></textarea>
+      <div class="flex gap-3">
+        <button type="submit" class="btn-primary flex-1">Reject Listing</button>
+        <button type="button" onclick="hideRejectModal()" class="btn-outline flex-1">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock platform_content %}
+
+{% block extra_js %}
+<script>
+function showRejectModal(pk, title) {
+  document.getElementById('reject-form').action = `/platform/listings/${pk}/reject/`;
+  document.getElementById('reject-modal-title').textContent = title;
+  document.getElementById('reject-modal').style.display = 'flex';
+}
+function hideRejectModal() {
+  document.getElementById('reject-modal').style.display = 'none';
+}
+</script>
+{% endblock %}

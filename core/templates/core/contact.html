@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% block title %}Contact Us - NyumbaHub{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="bg-primary relative overflow-hidden">
+  <div class="absolute inset-0 opacity-5" style="background-image:url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&auto=format&fit=crop'); background-size:cover;"></div>
+  <div class="relative max-w-7xl mx-auto px-4 py-16">
+    <h1 class="text-4xl font-bold text-white mb-3">Get In Touch</h1>
+    <p class="text-gray-300 text-lg max-w-lg">Have a question, want to list a property, or need help? Our team is ready to assist you.</p>
+    <nav class="text-sm text-gray-400 mt-4 flex items-center gap-2">
+      <a href="/" class="hover:text-white">Home</a>
+      <i class="fas fa-chevron-right text-xs"></i>
+      <span class="text-white">Contact</span>
+    </nav>
+  </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 py-14">
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-10">
+
+    <!-- Contact Info -->
+    <div class="lg:col-span-2 space-y-4">
+      <h2 class="text-2xl font-bold text-primary mb-6">Contact Information</h2>
+
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex gap-4 items-start hover:shadow-md transition-shadow">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md" style="background-color:#1D3557">
+          <i class="fas fa-map-marker-alt text-white text-lg"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-primary mb-1">Our Office</h3>
+          <p class="text-gray-500 text-sm leading-relaxed">Msasani Peninsula,<br>Dar es Salaam, Tanzania</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex gap-4 items-start hover:shadow-md transition-shadow">
+        <div class="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md shadow-green-500/30">
+          <i class="fas fa-phone text-white text-lg"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-primary mb-1">Phone</h3>
+          <p class="text-gray-500 text-sm">+255 700 000 000</p>
+          <p class="text-gray-500 text-sm">+255 712 000 000</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex gap-4 items-start hover:shadow-md transition-shadow">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md" style="background-color:#F59E0B">
+          <i class="fas fa-envelope text-white text-lg"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-primary mb-1">Email</h3>
+          <p class="text-gray-500 text-sm">info@nyumbahub.co.tz</p>
+          <p class="text-gray-500 text-sm">support@nyumbahub.co.tz</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex gap-4 items-start hover:shadow-md transition-shadow">
+        <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md shadow-blue-500/30">
+          <i class="fas fa-clock text-white text-lg"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-primary mb-1">Working Hours</h3>
+          <p class="text-gray-500 text-sm">Mon – Fri: 8:00am – 6:00pm</p>
+          <p class="text-gray-500 text-sm">Saturday: 9:00am – 2:00pm</p>
+        </div>
+      </div>
+
+      <!-- Social Links -->
+      <div class="rounded-2xl p-6 text-white" style="background-color:#1D3557">
+        <h3 class="font-bold mb-4">Follow Us</h3>
+        <div class="flex gap-3">
+          <a href="#" class="w-10 h-10 bg-white/10 hover:bg-accent rounded-xl flex items-center justify-center transition-colors">
+            <i class="fab fa-facebook-f"></i>
+          </a>
+          <a href="#" class="w-10 h-10 bg-white/10 hover:bg-accent rounded-xl flex items-center justify-center transition-colors">
+            <i class="fab fa-twitter"></i>
+          </a>
+          <a href="#" class="w-10 h-10 bg-white/10 hover:bg-accent rounded-xl flex items-center justify-center transition-colors">
+            <i class="fab fa-instagram"></i>
+          </a>
+          <a href="#" class="w-10 h-10 bg-white/10 hover:bg-accent rounded-xl flex items-center justify-center transition-colors">
+            <i class="fab fa-linkedin-in"></i>
+          </a>
+          <a href="#" class="w-10 h-10 bg-white/10 hover:bg-green-500 rounded-xl flex items-center justify-center transition-colors">
+            <i class="fab fa-whatsapp"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact Form -->
+    <div class="lg:col-span-3">
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-lg p-8 md:p-10">
+        <div class="mb-8">
+          <h2 class="text-2xl font-bold text-primary">Send Us a Message</h2>
+          <p class="text-gray-500 mt-1.5 text-sm">Fill in the form below and we'll get back to you within 24 hours.</p>
+        </div>
+
+        <form method="post" class="space-y-5">
+          {% csrf_token %}
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label class="form-label">Full Name <span class="text-red-400">*</span></label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <i class="fas fa-user text-gray-400 text-sm"></i>
+                </div>
+                <input type="text" name="name" value="{{ form.name.value|default:'' }}"
+                       class="form-input{% if form.name.errors %} border-red-400{% endif %}"
+                       style="padding-left:2.5rem!important"
+                       placeholder="John Doe" required>
+              </div>
+              {% for error in form.name.errors %}<p class="mt-1 text-xs text-red-500">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label class="form-label">Email Address <span class="text-red-400">*</span></label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <i class="fas fa-envelope text-gray-400 text-sm"></i>
+                </div>
+                <input type="email" name="email" value="{{ form.email.value|default:'' }}"
+                       class="form-input{% if form.email.errors %} border-red-400{% endif %}"
+                       style="padding-left:2.5rem!important"
+                       placeholder="john@example.com" required>
+              </div>
+              {% for error in form.email.errors %}<p class="mt-1 text-xs text-red-500">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label class="form-label">Phone <span class="text-gray-400 font-normal">(optional)</span></label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <i class="fas fa-phone text-gray-400 text-sm"></i>
+                </div>
+                <input type="tel" name="phone" value="{{ form.phone.value|default:'' }}"
+                       class="form-input" style="padding-left:2.5rem!important"
+                       placeholder="+255 7XX XXX XXX">
+              </div>
+            </div>
+            <div>
+              <label class="form-label">Subject <span class="text-red-400">*</span></label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <i class="fas fa-tag text-gray-400 text-sm"></i>
+                </div>
+                <input type="text" name="subject" value="{{ form.subject.value|default:'' }}"
+                       class="form-input{% if form.subject.errors %} border-red-400{% endif %}"
+                       style="padding-left:2.5rem!important"
+                       placeholder="How can we help?" required>
+              </div>
+              {% for error in form.subject.errors %}<p class="mt-1 text-xs text-red-500">{{ error }}</p>{% endfor %}
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label">Message <span class="text-red-400">*</span></label>
+            <textarea name="message" rows="6"
+                      class="form-input resize-none{% if form.message.errors %} border-red-400{% endif %}"
+                      placeholder="Write your message here..." required>{{ form.message.value|default:'' }}</textarea>
+            {% for error in form.message.errors %}<p class="mt-1 text-xs text-red-500">{{ error }}</p>{% endfor %}
+          </div>
+
+          <div class="flex items-center justify-between flex-wrap gap-4 pt-2">
+            <p class="text-xs text-gray-400">
+              <i class="fas fa-shield-alt text-green-500 mr-1"></i>
+              Your information is kept private and never shared.
+            </p>
+            <button type="submit" class="btn-primary px-8 py-3.5 text-base shadow-lg shadow-primary/25">
+              <i class="fas fa-paper-plane mr-2"></i> Send Message
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

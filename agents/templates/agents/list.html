@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Our Agents - NyumbaHub{% endblock %}
+{% block content %}
+<div class="bg-primary py-12">
+  <div class="max-w-7xl mx-auto px-4">
+    <h1 class="text-3xl font-bold text-white mb-2">Our Real Estate Agents</h1>
+    <p class="text-gray-300">Connect with experienced professionals across Tanzania</p>
+  </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 py-12">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
+    {% for agent in page_obj %}
+    <div class="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 group text-center">
+      <div class="relative inline-block mb-4">
+        <img src="{{ agent.get_avatar_url }}" class="w-24 h-24 rounded-full object-cover border-4 border-primary/20 mx-auto" alt="{{ agent }}">
+        {% if agent.is_verified %}
+        <div class="absolute bottom-1 right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+          <i class="fas fa-check text-white text-xs"></i>
+        </div>
+        {% endif %}
+      </div>
+      <h3 class="text-xl font-bold text-primary group-hover:text-accent transition-colors">{{ agent.get_full_name }}</h3>
+      <p class="text-gray-400 text-sm mb-1">{{ agent.city|default:"Tanzania" }}</p>
+      <p class="text-accent font-semibold text-sm mb-4">{{ agent.properties.count }} Listings</p>
+      {% if agent.bio %}
+      <p class="text-gray-500 text-sm line-clamp-2 mb-4">{{ agent.bio }}</p>
+      {% endif %}
+      <div class="flex justify-center gap-3 mb-4">
+        {% if agent.phone %}<a href="tel:{{ agent.phone }}" class="w-9 h-9 bg-primary/10 hover:bg-primary text-primary hover:text-white rounded-full flex items-center justify-center transition-all"><i class="fas fa-phone text-sm"></i></a>{% endif %}
+        {% if agent.whatsapp %}<a href="https://wa.me/{{ agent.whatsapp }}" class="w-9 h-9 bg-green-100 hover:bg-green-500 text-green-600 hover:text-white rounded-full flex items-center justify-center transition-all"><i class="fab fa-whatsapp text-sm"></i></a>{% endif %}
+        {% if agent.facebook %}<a href="{{ agent.facebook }}" class="w-9 h-9 bg-blue-100 hover:bg-blue-600 text-blue-600 hover:text-white rounded-full flex items-center justify-center transition-all"><i class="fab fa-facebook-f text-sm"></i></a>{% endif %}
+      </div>
+      <a href="{% url 'agents:detail' agent.pk %}" class="block w-full btn-outline text-sm py-2">View Profile</a>
+    </div>
+    {% empty %}
+    <div class="col-span-3 text-center py-20">
+      <i class="fas fa-user-tie text-5xl text-gray-200 mb-4 block"></i>
+      <p class="text-gray-400">No agents registered yet.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <div class="flex justify-center mt-10 gap-2">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="pagination-btn"><i class="fas fa-chevron-left"></i></a>{% endif %}
+    {% for num in page_obj.paginator.page_range %}
+    {% if page_obj.number == num %}<span class="pagination-btn active">{{ num }}</span>
+    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}<a href="?page={{ num }}" class="pagination-btn">{{ num }}</a>{% endif %}
+    {% endfor %}
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="pagination-btn"><i class="fas fa-chevron-right"></i></a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

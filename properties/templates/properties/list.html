@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Properties - NyumbaHub{% endblock %}
+
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="bg-primary py-12">
+  <div class="max-w-7xl mx-auto px-4">
+    <h1 class="text-3xl font-bold text-white mb-2">
+      {% if property_type %}{{ property_type.name }}{% else %}All Properties{% endif %}
+    </h1>
+    <p class="text-gray-300">{{ total }} properties found</p>
+  </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 py-10">
+  <div class="flex flex-col lg:flex-row gap-8">
+
+    <!-- Sidebar Filters -->
+    <aside class="w-full lg:w-72 flex-shrink-0">
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden sticky top-24">
+        <div class="bg-primary p-4">
+          <h3 class="text-white font-bold text-lg flex items-center gap-2">
+            <i class="fas fa-filter"></i> Search Filters
+          </h3>
+        </div>
+        <form method="get" class="p-5 space-y-5">
+
+          <!-- Keyword -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+              <i class="fas fa-search text-primary mr-1.5"></i>Keyword
+            </label>
+            <input type="text" name="keyword" value="{{ filter.form.keyword.value|default:'' }}"
+                   class="filter-input" placeholder="Property title, area...">
+          </div>
+
+          <!-- Location -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+              <i class="fas fa-map-marker-alt text-primary mr-1.5"></i>Location
+            </label>
+            <input type="text" name="city" value="{{ filter.form.city.value|default:'' }}"
+                   class="filter-input" placeholder="City or area...">
+          </div>
+
+          <!-- Status -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+              <i class="fas fa-tag text-primary mr-1.5"></i>Listing Type
+            </label>
+            <div class="grid grid-cols-3 gap-2">
+              <label class="status-pill {% if not filter.form.status.value %}active{% endif %}">
+                <input type="radio" name="status" value="" class="hidden" {% if not filter.form.status.value %}checked{% endif %}>
+                All
+              </label>
+              <label class="status-pill {% if filter.form.status.value == 'for_sale' %}active{% endif %}">
+                <input type="radio" name="status" value="for_sale" class="hidden" {% if filter.form.status.value == 'for_sale' %}checked{% endif %}>
+                For Sale
+              </label>
+              <label class="status-pill {% if filter.form.status.value == 'for_rent' %}active{% endif %}">
+                <input type="radio" name="status" value="for_rent" class="hidden" {% if filter.form.status.value == 'for_rent' %}checked{% endif %}>
+                For Rent
+              </label>
+            </div>
+          </div>
+
+          <!-- Property Type -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+              <i class="fas fa-home text-primary mr-1.5"></i>Property Type
+            </label>
+            <select name="property_type" class="filter-input">
+              <option value="">All Types</option>
+              {% for ptype in property_types %}
+              <option value="{{ ptype.id }}" {% if filter.form.property_type.value == ptype.id|stringformat:"s" %}selected{% endif %}>{{ ptype.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Price -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+              <i class="fas fa-money-bill-wave text-primary mr-1.5"></i>Price (TZS)
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+              <input type="number" name="min_price" value="{{ filter.form.min_price.value|default:'' }}"
+                     class="filter-input" placeholder="Min">
+              <input type="number" name="max_price" value="{{ filter.form.max_price.value|default:'' }}"
+                     class="filter-input" placeholder="Max">
+            </div>
+          </div>
+
+          <!-- Beds & Baths -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+              <i class="fas fa-bed text-primary mr-1.5"></i>Bedrooms
+            </label>
+            <div class="flex gap-1.5 flex-wrap">
+              {% for i in "012345" %}
+              <label class="bed-pill {% if filter.form.bedrooms.value == forloop.counter0|stringformat:"s" or forloop.counter0 == 0 and not filter.form.bedrooms.value %}active{% endif %}">
+                <input type="radio" name="bedrooms" value="{% if forloop.counter0 > 0 %}{{ forloop.counter0 }}{% endif %}" class="hidden"
+                       {% if forloop.counter0 == 0 and not filter.form.bedrooms.value %}checked{% elif filter.form.bedrooms.value == forloop.counter0|stringformat:"s" %}checked{% endif %}>
+                {% if forloop.counter0 == 0 %}Any{% else %}{{ forloop.counter0 }}+{% endif %}
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+              <i class="fas fa-bath text-primary mr-1.5"></i>Bathrooms
+            </label>
+            <div class="flex gap-1.5 flex-wrap">
+              {% for i in "012345" %}
+              <label class="bed-pill {% if filter.form.bathrooms.value == forloop.counter0|stringformat:"s" or forloop.counter0 == 0 and not filter.form.bathrooms.value %}active{% endif %}">
+                <input type="radio" name="bathrooms" value="{% if forloop.counter0 > 0 %}{{ forloop.counter0 }}{% endif %}" class="hidden"
+                       {% if forloop.counter0 == 0 and not filter.form.bathrooms.value %}checked{% elif filter.form.bathrooms.value == forloop.counter0|stringformat:"s" %}checked{% endif %}>
+                {% if forloop.counter0 == 0 %}Any{% else %}{{ forloop.counter0 }}+{% endif %}
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Area -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+              <i class="fas fa-ruler-combined text-primary mr-1.5"></i>Area (ft²)
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+              <input type="number" name="min_area" value="{{ filter.form.min_area.value|default:'' }}"
+                     class="filter-input" placeholder="Min">
+              <input type="number" name="max_area" value="{{ filter.form.max_area.value|default:'' }}"
+                     class="filter-input" placeholder="Max">
+            </div>
+          </div>
+
+          <button type="submit" class="w-full btn-primary py-3">
+            <i class="fas fa-search mr-2"></i> Search Properties
+          </button>
+          <a href="{% url 'properties:list' %}" class="block w-full text-center text-gray-400 hover:text-primary text-sm py-2 transition-colors">
+            <i class="fas fa-rotate-left mr-1"></i> Reset Filters
+          </a>
+
+          <!-- Save Search -->
+          {% if user.is_authenticated %}
+          <hr class="border-gray-100">
+          <div>
+            <p class="text-xs text-gray-500 mb-2 font-semibold">SAVE THIS SEARCH</p>
+            <form method="post" action="{% url 'properties:save_search' %}">
+              {% csrf_token %}
+              <input type="hidden" name="save_search_submit" value="1">
+              {% for key, val in request.GET.items %}
+              <input type="hidden" name="{{ key }}" value="{{ val }}">
+              {% endfor %}
+              <input type="text" name="name" class="filter-input mb-2" placeholder="Search name..." required>
+              <label class="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                <input type="checkbox" name="email_alerts" value="on" checked class="rounded"> Email alerts
+              </label>
+              <button type="submit" class="w-full border-2 border-primary text-primary hover:bg-primary hover:text-white py-2 rounded-xl font-semibold text-sm transition-all">
+                <i class="fas fa-bookmark mr-1"></i> Save Search
+              </button>
+            </form>
+          </div>
+          {% endif %}
+        </form>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1">
+      <!-- Sort bar -->
+      <div class="flex flex-wrap items-center justify-between mb-6 bg-white rounded-xl p-4 border border-gray-100 gap-3">
+        <p class="text-gray-500 text-sm"><span class="font-semibold text-primary">{{ total }}</span> properties found</p>
+        <div class="flex items-center gap-3 flex-wrap">
+          <a href="{% url 'properties:map' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="flex items-center gap-2 text-sm bg-primary/10 text-primary hover:bg-primary hover:text-white px-3 py-2 rounded-lg font-semibold transition-all">
+            <i class="fas fa-map-marked-alt"></i> Map View
+          </a>
+          {% if compare_list %}
+          <a href="{% url 'properties:compare' %}" class="flex items-center gap-2 text-sm bg-accent/10 text-accent hover:bg-accent hover:text-white px-3 py-2 rounded-lg font-semibold transition-all">
+            <i class="fas fa-balance-scale"></i> Compare ({{ compare_list|length }})
+          </a>
+          {% endif %}
+          <span class="text-sm text-gray-500">Sort:</span>
+          <select class="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20" onchange="window.location = this.value">
+            <option value="?">Newest First</option>
+            <option value="?ordering=price">Price: Low to High</option>
+            <option value="?ordering=-price">Price: High to Low</option>
+          </select>
+          <div class="flex gap-1">
+            <button id="grid-btn" onclick="setView('grid')" class="view-btn active p-2 rounded-lg"><i class="fas fa-th"></i></button>
+            <button id="list-btn" onclick="setView('list')" class="view-btn p-2 rounded-lg"><i class="fas fa-list"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid View -->
+      <div id="grid-view" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {% for prop in page_obj %}
+        {% include 'properties/_card.html' %}
+        {% empty %}
+        <div class="col-span-3 text-center py-20">
+          <i class="fas fa-search text-5xl text-gray-200 mb-4 block"></i>
+          <h3 class="text-xl font-semibold text-gray-400">No properties found</h3>
+          <p class="text-gray-400 mt-2">Try adjusting your search filters</p>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if page_obj.has_other_pages %}
+      <div class="flex justify-center mt-10 gap-2">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="pagination-btn"><i class="fas fa-chevron-left"></i></a>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <span class="pagination-btn active">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <a href="?page={{ num }}" class="pagination-btn">{{ num }}</a>
+        {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="pagination-btn"><i class="fas fa-chevron-right"></i></a>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function setView(v) {
+  document.getElementById('grid-btn').classList.toggle('active', v === 'grid');
+  document.getElementById('list-btn').classList.toggle('active', v === 'list');
+}
+
+// Pill button interactivity — update active class on click
+document.querySelectorAll('.status-pill input, .bed-pill input').forEach(input => {
+  input.addEventListener('change', function() {
+    const group = this.name;
+    document.querySelectorAll(`[name="${group}"]`).forEach(r => {
+      r.parentElement.classList.toggle('active', r.checked);
+    });
+  });
+});
+</script>
+{% endblock %}

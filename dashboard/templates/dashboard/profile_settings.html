@@ -1,0 +1,121 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}Profile Settings - NyumbaHub{% endblock %}
+{% block breadcrumb %}<i class="fas fa-chevron-right text-xs mx-1"></i><span class="text-primary font-semibold">Settings</span>{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-primary">Profile Settings</h1>
+  <p class="text-gray-500 mt-1">Update your personal information and preferences</p>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="space-y-6">
+  {% csrf_token %}
+
+  <!-- Profile Photo -->
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+    <h2 class="font-bold text-primary mb-5">Profile Photo</h2>
+    <div class="flex items-center gap-6">
+      <img src="{{ user.get_avatar_url }}" id="avatar-preview" class="w-24 h-24 rounded-full object-cover border-4 border-primary/20" alt="">
+      <div>
+        <input type="file" name="avatar" id="avatar-input" accept="image/*" class="hidden" onchange="previewAvatar(this)">
+        <button type="button" onclick="document.getElementById('avatar-input').click()" class="btn-outline text-sm mb-2">
+          <i class="fas fa-camera mr-2"></i>Change Photo
+        </button>
+        <p class="text-xs text-gray-400">JPG, PNG. Max 2MB. Recommended 400×400px</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Personal Info -->
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+    <h2 class="font-bold text-primary mb-5">Personal Information</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="filter-label">First Name</label>
+        <input type="text" name="first_name" value="{{ user.first_name }}" class="filter-input mt-1">
+      </div>
+      <div>
+        <label class="filter-label">Last Name</label>
+        <input type="text" name="last_name" value="{{ user.last_name }}" class="filter-input mt-1">
+      </div>
+      <div>
+        <label class="filter-label">Phone Number</label>
+        <input type="tel" name="phone" value="{{ user.phone }}" class="filter-input mt-1" placeholder="+255 7XX XXX XXX">
+      </div>
+      <div>
+        <label class="filter-label">WhatsApp Number</label>
+        <input type="tel" name="whatsapp" value="{{ user.whatsapp }}" class="filter-input mt-1" placeholder="255 7XX XXX XXX">
+      </div>
+      <div class="md:col-span-2">
+        <label class="filter-label">Bio</label>
+        <textarea name="bio" rows="3" class="filter-input mt-1" placeholder="Tell buyers about yourself...">{{ user.bio }}</textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Location -->
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+    <h2 class="font-bold text-primary mb-5">Location</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="md:col-span-2">
+        <label class="filter-label">Address</label>
+        <input type="text" name="address" value="{{ user.address }}" class="filter-input mt-1" placeholder="Street address">
+      </div>
+      <div>
+        <label class="filter-label">City</label>
+        <input type="text" name="city" value="{{ user.city }}" class="filter-input mt-1" placeholder="e.g. Dar es Salaam">
+      </div>
+      <div>
+        <label class="filter-label">Country</label>
+        <input type="text" name="country" value="{{ user.country }}" class="filter-input mt-1" placeholder="Tanzania">
+      </div>
+    </div>
+  </div>
+
+  <!-- Social Links -->
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+    <h2 class="font-bold text-primary mb-5">Social & Web</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="filter-label"><i class="fas fa-globe text-gray-400 mr-1"></i>Website</label>
+        <input type="url" name="website" value="{{ user.website }}" class="filter-input mt-1" placeholder="https://yourwebsite.com">
+      </div>
+      <div>
+        <label class="filter-label"><i class="fab fa-facebook-f text-blue-500 mr-1"></i>Facebook</label>
+        <input type="url" name="facebook" value="{{ user.facebook }}" class="filter-input mt-1" placeholder="https://facebook.com/...">
+      </div>
+      <div>
+        <label class="filter-label"><i class="fab fa-twitter text-sky-400 mr-1"></i>Twitter</label>
+        <input type="url" name="twitter" value="{{ user.twitter }}" class="filter-input mt-1" placeholder="https://twitter.com/...">
+      </div>
+      <div>
+        <label class="filter-label"><i class="fab fa-instagram text-pink-500 mr-1"></i>Instagram</label>
+        <input type="url" name="instagram" value="{{ user.instagram }}" class="filter-input mt-1" placeholder="https://instagram.com/...">
+      </div>
+      <div>
+        <label class="filter-label"><i class="fab fa-linkedin-in text-blue-600 mr-1"></i>LinkedIn</label>
+        <input type="url" name="linkedin" value="{{ user.linkedin }}" class="filter-input mt-1" placeholder="https://linkedin.com/in/...">
+      </div>
+    </div>
+  </div>
+
+  <div class="flex gap-4">
+    <button type="submit" class="btn-primary px-10"><i class="fas fa-save mr-2"></i>Save Changes</button>
+    <a href="{% url 'dashboard:change_password' %}" class="btn-outline px-6">
+      <i class="fas fa-lock mr-2"></i> Change Password
+    </a>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function previewAvatar(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => document.getElementById('avatar-preview').src = e.target.result;
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+{% endblock %}

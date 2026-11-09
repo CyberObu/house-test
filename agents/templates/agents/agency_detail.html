@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}{{ agency.name }} - NyumbaHub{% endblock %}
+{% block content %}
+
+<!-- Agency Cover -->
+<div class="h-56 bg-gradient-to-br from-primary to-primary/80 relative">
+  {% if agency.cover %}<img src="{{ agency.cover.url }}" class="w-full h-full object-cover" alt="{{ agency.name }}">{% endif %}
+  <div class="absolute inset-0 bg-black/30"></div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4">
+
+  <!-- Agency Header -->
+  <div class="bg-white rounded-2xl shadow-xl border border-gray-100 -mt-16 relative z-10 p-8 mb-10">
+    <div class="flex flex-col md:flex-row gap-6 items-start">
+      <div class="w-24 h-24 rounded-2xl border-4 border-gray-100 shadow bg-white flex items-center justify-center overflow-hidden flex-shrink-0">
+        {% if agency.logo %}
+        <img src="{{ agency.logo.url }}" class="w-full h-full object-cover" alt="{{ agency.name }}">
+        {% else %}
+        <i class="fas fa-building text-4xl text-primary/30"></i>
+        {% endif %}
+      </div>
+      <div class="flex-1">
+        <div class="flex items-center gap-3 mb-2">
+          <h1 class="text-2xl font-bold text-primary">{{ agency.name }}</h1>
+          {% if agency.is_verified %}
+          <span class="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full font-semibold"><i class="fas fa-check-circle mr-1"></i>Verified Agency</span>
+          {% endif %}
+        </div>
+        {% if agency.city %}<p class="text-gray-500 mb-2"><i class="fas fa-map-marker-alt text-accent mr-1"></i>{{ agency.city }}, {{ agency.country }}</p>{% endif %}
+        {% if agency.description %}<p class="text-gray-600 text-sm leading-relaxed max-w-2xl">{{ agency.description }}</p>{% endif %}
+      </div>
+      <div class="flex flex-col gap-2 text-sm min-w-48">
+        {% if agency.phone %}<div class="flex gap-2 items-center text-gray-600"><i class="fas fa-phone text-accent w-5"></i>{{ agency.phone }}</div>{% endif %}
+        {% if agency.email %}<div class="flex gap-2 items-center text-gray-600"><i class="fas fa-envelope text-accent w-5"></i>{{ agency.email }}</div>{% endif %}
+        {% if agency.website %}<a href="{{ agency.website }}" class="flex gap-2 items-center text-primary hover:underline"><i class="fas fa-globe text-accent w-5"></i>Website</a>{% endif %}
+        <div class="flex gap-2 mt-2">
+          {% if agency.facebook %}<a href="{{ agency.facebook }}" class="social-icon"><i class="fab fa-facebook-f"></i></a>{% endif %}
+          {% if agency.twitter %}<a href="{{ agency.twitter }}" class="social-icon"><i class="fab fa-twitter"></i></a>{% endif %}
+          {% if agency.instagram %}<a href="{{ agency.instagram }}" class="social-icon"><i class="fab fa-instagram"></i></a>{% endif %}
+          {% if agency.linkedin %}<a href="{{ agency.linkedin }}" class="social-icon"><i class="fab fa-linkedin-in"></i></a>{% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="flex gap-8 mt-6 pt-6 border-t border-gray-100 text-center">
+      <div><div class="text-2xl font-bold text-primary">{{ agents.count }}</div><div class="text-xs text-gray-500">Agents</div></div>
+      <div><div class="text-2xl font-bold text-primary">{{ page_obj.paginator.count }}</div><div class="text-xs text-gray-500">Listings</div></div>
+    </div>
+  </div>
+
+  <!-- Agents -->
+  {% if agents %}
+  <div class="mb-12">
+    <h2 class="text-2xl font-bold text-primary mb-6">Our Agents</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      {% for agent in agents %}
+      <a href="{% url 'agents:detail' agent.pk %}" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center hover:shadow-lg transition-all group">
+        <img src="{{ agent.get_avatar_url }}" class="w-20 h-20 rounded-full object-cover border-4 border-primary/10 mx-auto mb-3 group-hover:border-accent transition-colors" alt="{{ agent }}">
+        <h3 class="font-bold text-primary group-hover:text-accent transition-colors">{{ agent.get_full_name }}</h3>
+        <p class="text-gray-400 text-xs mt-1">{{ agent.properties.count }} listings</p>
+        {% if agent.is_verified %}<span class="text-xs text-green-500"><i class="fas fa-check-circle"></i> Verified</span>{% endif %}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Listings -->
+  <div class="mb-12">
+    <h2 class="text-2xl font-bold text-primary mb-6">Agency Listings</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for prop in page_obj %}
+      {% include 'properties/_card.html' %}
+      {% empty %}
+      <div class="col-span-3 text-center py-12">
+        <i class="fas fa-home text-4xl text-gray-200 mb-3 block"></i>
+        <p class="text-gray-400">No listings yet.</p>
+      </div>
+      {% endfor %}
+    </div>
+    {% if page_obj.has_other_pages %}
+    <div class="flex justify-center mt-8 gap-2">
+      {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="pagination-btn"><i class="fas fa-chevron-left"></i></a>{% endif %}
+      {% for num in page_obj.paginator.page_range %}
+      {% if page_obj.number == num %}<span class="pagination-btn active">{{ num }}</span>
+      {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}<a href="?page={{ num }}" class="pagination-btn">{{ num }}</a>{% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="pagination-btn"><i class="fas fa-chevron-right"></i></a>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

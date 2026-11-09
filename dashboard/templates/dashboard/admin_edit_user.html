@@ -1,0 +1,72 @@
+{% extends 'dashboard/base_platform.html' %}
+{% block title %}Edit User - NyumbaHub{% endblock %}
+{% block breadcrumb %}Edit User{% endblock %}
+
+{% block platform_content %}
+<div class="max-w-2xl mx-auto">
+  <div class="flex items-center gap-4 mb-6">
+    <img src="{{ user_obj.get_avatar_url }}" class="w-14 h-14 rounded-2xl object-cover border border-gray-100">
+    <div>
+      <h1 class="text-xl font-bold" style="color:#1D3557">Edit: {{ user_obj.get_full_name|default:user_obj.email }}</h1>
+      <p class="text-gray-400 text-sm">{{ user_obj.email }} &mdash; <span class="capitalize font-medium">{{ user_obj.role }}</span></p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+    <form method="post">
+      {% csrf_token %}
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
+        <div>
+          <label class="form-label">First Name</label>
+          <input type="text" name="first_name" value="{{ user_obj.first_name }}" class="form-input">
+        </div>
+        <div>
+          <label class="form-label">Last Name</label>
+          <input type="text" name="last_name" value="{{ user_obj.last_name }}" class="form-input">
+        </div>
+        <div>
+          <label class="form-label">Email</label>
+          <input type="email" name="email" value="{{ user_obj.email }}" class="form-input" required>
+        </div>
+        <div>
+          <label class="form-label">Phone</label>
+          <input type="text" name="phone" value="{{ user_obj.phone }}" class="form-input">
+        </div>
+        <div>
+          <label class="form-label">City</label>
+          <input type="text" name="city" value="{{ user_obj.city }}" class="form-input">
+        </div>
+        <div>
+          <label class="form-label">Role</label>
+          <select name="role" class="form-input">
+            <option value="buyer"  {% if user_obj.role == 'buyer'  %}selected{% endif %}>Buyer / Tenant</option>
+            <option value="agent"  {% if user_obj.role == 'agent'  %}selected{% endif %}>Agent</option>
+            <option value="admin"  {% if user_obj.role == 'admin'  %}selected{% endif %}>Admin</option>
+          </select>
+        </div>
+      </div>
+
+      {% if user_obj.role == 'agent' %}
+      <div class="flex items-center gap-3 p-4 bg-green-50 rounded-xl mb-5">
+        <input type="checkbox" name="is_verified" id="is_verified" class="w-4 h-4 rounded"
+               {% if user_obj.is_verified %}checked{% endif %}>
+        <label for="is_verified" class="text-sm font-semibold text-green-700 cursor-pointer">Mark as Verified Agent</label>
+      </div>
+      {% endif %}
+
+      <div class="flex items-center gap-3 p-4 {% if user_obj.is_active %}bg-gray-50{% else %}bg-red-50{% endif %} rounded-xl mb-6">
+        <i class="fas {% if user_obj.is_active %}fa-check-circle text-green-500{% else %}fa-ban text-red-500{% endif %}"></i>
+        <div class="flex-1">
+          <p class="text-sm font-semibold text-gray-700">Account Status: <span class="{% if user_obj.is_active %}text-green-600{% else %}text-red-600{% endif %}">{% if user_obj.is_active %}Active{% else %}Suspended{% endif %}</span></p>
+          <p class="text-xs text-gray-400 mt-0.5">Use the Suspend / Activate button on the list page to change this.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button type="submit" class="btn-primary flex-1">Save Changes</button>
+        <a href="javascript:history.back()" class="btn-outline flex-1 text-center">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock platform_content %}

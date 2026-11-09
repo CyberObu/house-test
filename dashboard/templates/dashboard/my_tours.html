@@ -1,0 +1,147 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}Tours - NyumbaHub{% endblock %}
+{% block breadcrumb %}<i class="fas fa-chevron-right text-xs mx-1"></i><span class="text-primary font-semibold">Tours</span>{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-primary">
+    {% if user.is_agent %}Tour Requests{% else %}My Tours{% endif %}
+  </h1>
+  <p class="text-gray-500 mt-1">
+    {% if user.is_agent %}Manage tour requests from buyers for your properties.{% else %}Track the status of tours you've scheduled.{% endif %}
+  </p>
+</div>
+
+<div class="space-y-8">
+
+  <!-- Tours I Requested (everyone sees this) -->
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+    <h2 class="text-lg font-bold text-primary mb-5 flex items-center gap-2">
+      <i class="fas fa-calendar-check text-accent"></i>
+      {% if user.is_agent %}Tours I Booked Personally{% else %}My Tour Requests{% endif %}
+    </h2>
+    {% if as_requester %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-100">
+            <th class="text-left py-3 px-3 text-gray-500 font-semibold">Property</th>
+            <th class="text-left py-3 px-3 text-gray-500 font-semibold">Date</th>
+            <th class="text-left py-3 px-3 text-gray-500 font-semibold">Time</th>
+            <th class="text-left py-3 px-3 text-gray-500 font-semibold">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          {% for tour in as_requester %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="py-3 px-3">
+              <a href="{{ tour.property.get_absolute_url }}" class="font-semibold text-primary hover:text-accent transition-colors">{{ tour.property.title|truncatechars:40 }}</a>
+              <p class="text-gray-400 text-xs mt-0.5"><i class="fas fa-map-marker-alt text-accent mr-1"></i>{{ tour.property.city }}</p>
+            </td>
+            <td class="py-3 px-3 text-gray-600">{{ tour.tour_date|date:"M d, Y" }}</td>
+            <td class="py-3 px-3 text-gray-600">{{ tour.tour_time|time:"H:i" }}</td>
+            <td class="py-3 px-3">
+              <span class="px-3 py-1 rounded-full text-xs font-semibold
+                {% if tour.status == 'confirmed' %}bg-green-100 text-green-700
+                {% elif tour.status == 'cancelled' %}bg-red-100 text-red-600
+                {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                {{ tour.get_status_display }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-10">
+      <div class="w-14 h-14 bg-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
+        <i class="fas fa-calendar text-2xl text-accent/40"></i>
+      </div>
+      <p class="text-gray-400 text-sm mb-4">You haven't booked any tours yet.</p>
+      <a href="{% url 'properties:list' %}" class="btn-primary text-sm">
+        <i class="fas fa-search mr-2"></i> Browse Properties
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if user.is_agent %}
+  <!-- Tour Requests for My Properties (agents only) -->
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+    <h2 class="text-lg font-bold text-primary mb-5 flex items-center gap-2">
+      <i class="fas fa-users text-accent"></i> Incoming Tour Requests
+      {% if as_owner %}<span class="ml-2 bg-primary/10 text-primary text-xs font-bold px-2.5 py-0.5 rounded-full">{{ as_owner|length }}</span>{% endif %}
+    </h2>
+    {% if as_owner %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-100">
+            <th class="text-left py-3 px-3 text-gray-500 font-semibold">Property</th>
+            <th class="text-left py-3 px-3 text-gray-500 font-semibold">Visitor</th>
+            <th class="text-left py-3 px-3 text-gray-500 font-semibold">Date & Time</th>
+            <th class="text-left py-3 px-3 text-gray-500 font-semibold">Status</th>
+            <th class="text-left py-3 px-3 text-gray-500 font-semibold">Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          {% for tour in as_owner %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="py-3 px-3">
+              <a href="{{ tour.property.get_absolute_url }}" class="font-semibold text-primary hover:text-accent transition-colors">{{ tour.property.title|truncatechars:30 }}</a>
+            </td>
+            <td class="py-3 px-3">
+              <div class="font-medium text-gray-700">{{ tour.name }}</div>
+              <div class="text-gray-400 text-xs">{{ tour.email }}</div>
+              {% if tour.phone %}<div class="text-gray-400 text-xs">{{ tour.phone }}</div>{% endif %}
+              {% if tour.message %}<div class="text-gray-500 text-xs mt-1 italic">"{{ tour.message|truncatechars:50 }}"</div>{% endif %}
+            </td>
+            <td class="py-3 px-3">
+              <div class="text-gray-700">{{ tour.tour_date|date:"M d, Y" }}</div>
+              <div class="text-gray-400 text-xs">{{ tour.tour_time|time:"H:i" }}</div>
+            </td>
+            <td class="py-3 px-3">
+              <span class="px-3 py-1 rounded-full text-xs font-semibold
+                {% if tour.status == 'confirmed' %}bg-green-100 text-green-700
+                {% elif tour.status == 'cancelled' %}bg-red-100 text-red-600
+                {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                {{ tour.get_status_display }}
+              </span>
+            </td>
+            <td class="py-3 px-3">
+              {% if tour.status == 'pending' %}
+              <div class="flex gap-2">
+                <form method="post" action="{% url 'dashboard:update_tour_status' tour.pk %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="status" value="confirmed">
+                  <button type="submit" class="bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors">Confirm</button>
+                </form>
+                <form method="post" action="{% url 'dashboard:update_tour_status' tour.pk %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="status" value="cancelled">
+                  <button type="submit" class="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors">Cancel</button>
+                </form>
+              </div>
+              {% else %}
+              <span class="text-gray-300 text-xs">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-10">
+      <div class="w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center mx-auto mb-3">
+        <i class="fas fa-users text-2xl text-primary/20"></i>
+      </div>
+      <p class="text-gray-400 text-sm">No tour requests for your properties yet.</p>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

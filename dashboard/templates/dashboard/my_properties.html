@@ -1,0 +1,95 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load humanize %}
+{% block title %}My Properties - NyumbaHub{% endblock %}
+{% block breadcrumb %}<i class="fas fa-chevron-right text-xs mx-1"></i><span class="text-primary font-semibold">My Properties</span>{% endblock %}
+
+{% block dashboard_content %}
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-primary">My Properties</h1>
+    <p class="text-gray-500 mt-1">Manage all your property listings</p>
+  </div>
+  <a href="{% url 'dashboard:add_property' %}" class="btn-primary"><i class="fas fa-plus mr-2"></i>Add Property</a>
+</div>
+
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+        <tr>
+          <th class="px-5 py-4 text-left">Property</th>
+          <th class="px-5 py-4 text-left">Type</th>
+          <th class="px-5 py-4 text-left">Status</th>
+          <th class="px-5 py-4 text-left">Price</th>
+          <th class="px-5 py-4 text-left">Views</th>
+          <th class="px-5 py-4 text-left">Approval</th>
+          <th class="px-5 py-4 text-left">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        {% for prop in page_obj %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-5 py-4">
+            <div class="flex items-center gap-3">
+              {% with prop.get_main_image as img %}
+              {% if img %}<img src="{{ img.image.url }}" class="w-14 h-12 rounded-xl object-cover flex-shrink-0">
+              {% else %}<div class="w-14 h-12 bg-gray-100 rounded-xl flex items-center justify-center"><i class="fas fa-home text-gray-300 text-lg"></i></div>{% endif %}
+              {% endwith %}
+              <div>
+                <div class="font-semibold text-primary line-clamp-1">{{ prop.title|truncatechars:35 }}</div>
+                <div class="text-xs text-gray-400 mt-0.5"><i class="fas fa-map-marker-alt mr-1 text-accent"></i>{{ prop.city }}</div>
+              </div>
+            </div>
+          </td>
+          <td class="px-5 py-4 text-gray-600">{{ prop.property_type|default:"—" }}</td>
+          <td class="px-5 py-4"><span class="{{ prop.status_badge_color }} text-white text-xs px-3 py-1 rounded-full font-medium">{{ prop.get_status_display }}</span></td>
+          <td class="px-5 py-4 font-semibold text-primary">TZS {{ prop.price|intcomma }}</td>
+          <td class="px-5 py-4 text-gray-500">{{ prop.views_count }}</td>
+          <td class="px-5 py-4">
+            {% if prop.approval_status == 'approved' %}
+              <span class="inline-flex items-center gap-1.5 bg-green-50 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full"><i class="fas fa-check-circle"></i> Approved</span>
+            {% elif prop.approval_status == 'rejected' %}
+              <span class="inline-flex items-center gap-1.5 bg-red-50 text-red-700 text-xs font-semibold px-2.5 py-1 rounded-full" title="{{ prop.rejection_reason }}"><i class="fas fa-times-circle"></i> Rejected</span>
+            {% else %}
+              <span class="inline-flex items-center gap-1.5 bg-yellow-50 text-yellow-700 text-xs font-semibold px-2.5 py-1 rounded-full"><i class="fas fa-clock"></i> Pending</span>
+            {% endif %}
+            {% if prop.approval_status == 'rejected' and prop.rejection_reason %}
+            <p class="text-xs text-red-400 mt-1 max-w-xs leading-tight">{{ prop.rejection_reason|truncatechars:60 }}</p>
+            {% endif %}
+          </td>
+          <td class="px-5 py-4">
+            <div class="flex items-center gap-3">
+              <a href="{{ prop.get_absolute_url }}" class="text-blue-400 hover:text-blue-600 transition-colors" title="View"><i class="fas fa-eye"></i></a>
+              <a href="{% url 'dashboard:edit_property' prop.slug %}" class="text-green-400 hover:text-green-600 transition-colors" title="Edit"><i class="fas fa-edit"></i></a>
+              <form method="post" action="{% url 'dashboard:delete_property' prop.slug %}" onsubmit="return confirm('Delete \'{{ prop.title|escapejs }}\'? This cannot be undone.')">
+                {% csrf_token %}
+                <button type="submit" class="text-red-400 hover:text-red-600 transition-colors" title="Delete"><i class="fas fa-trash"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center py-16">
+            <i class="fas fa-home text-5xl text-gray-200 mb-4 block"></i>
+            <p class="text-gray-400 font-medium">No properties yet</p>
+            <a href="{% url 'dashboard:add_property' %}" class="inline-block mt-4 btn-primary text-sm">Add Your First Property</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <div class="p-5 border-t border-gray-100 flex justify-center gap-2">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="pagination-btn"><i class="fas fa-chevron-left"></i></a>{% endif %}
+    {% for num in page_obj.paginator.page_range %}
+    {% if page_obj.number == num %}<span class="pagination-btn active">{{ num }}</span>
+    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}<a href="?page={{ num }}" class="pagination-btn">{{ num }}</a>{% endif %}
+    {% endfor %}
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="pagination-btn"><i class="fas fa-chevron-right"></i></a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
